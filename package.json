@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "server": "bun --watch run utils/socket/server.ts",
     "build": "next build",
     "check": "next lint && tsc --noEmit",
     "db:generate": "drizzle-kit generate",

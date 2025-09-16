@@ -11,6 +11,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "~/server/db";
+import {getSocket} from "../../../utils/socket/socket-client";
 
 /**
  * 1. CONTEXT
@@ -28,6 +29,7 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
   return {
     db,
     ...opts,
+    socket: getSocket(),
   };
 };
 
