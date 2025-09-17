@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "server": "bun --watch run utils/socket/server.ts",
     "build": "next build",
     "check": "next lint && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
@@ -21,6 +22,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.14.0",
+    "@socket.io/bun-engine": "^0.0.2",
     "@t3-oss/env-nextjs": "^0.12.0",
     "@tanstack/react-query": "^5.69.0",
     "@trpc/client": "^11.0.0",
@@ -32,6 +34,8 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "server-only": "^0.0.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "superjson": "^2.2.1",
     "zod": "^3.24.2"
   },
