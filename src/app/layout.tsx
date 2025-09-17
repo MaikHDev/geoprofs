@@ -17,16 +17,12 @@ const geist = Geist({
     variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
-                                       children,
-                                   }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({children}: Readonly<{ children: React.ReactNode }>) {
     return (
         <html lang="en" className={`${geist.variable}`}>
         <body>
         <TRPCReactProvider>
-            <SocketProvider>
-                {children}
-            </SocketProvider>
+            <SocketProvider>{children}</SocketProvider>
         </TRPCReactProvider>
         </body>
         </html>
