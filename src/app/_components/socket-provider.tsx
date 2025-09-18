@@ -2,7 +2,7 @@
 
 import React, {createContext, useContext, useEffect, useState} from "react";
 import {type Socket} from "socket.io-client";
-import {getSocket} from "../../../utils/socket/socket-client";
+import {getSocket} from "../../../utils/socket-client";
 import {api} from "~/trpc/react";
 
 type SocketContextType = {
