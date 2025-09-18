@@ -2,10 +2,10 @@
 FROM oven/bun:latest
 
 # Set working directory
-WORKDIR /app
+WORKDIR /app/socket
 
 # Copy package and lock files
-COPY package.json bun.lock ./
+COPY package.json  bun.lock ./
 
 # Install dependencies
 RUN bun install
