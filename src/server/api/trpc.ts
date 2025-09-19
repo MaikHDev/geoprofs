@@ -11,7 +11,7 @@ import superjson from "superjson";
 import {ZodError} from "zod";
 
 import {db} from "~/server/db";
-import {getSocket} from "../../../utils/socket/socket-client";
+import {getSocket} from "../../../utils/socket-client";
 import {auth} from "utils/auth";
 
 /**
