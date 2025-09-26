@@ -26,4 +26,9 @@
 - #### Open a new terminal.
 - #### Run: 'bun run dev'.
 
+## Seeders
+
+### If you want to run the seeders, run the following command:
+-  bun run src/server/db/seed.ts
+
 
