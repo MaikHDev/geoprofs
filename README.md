@@ -19,7 +19,9 @@
 ### 4. You need to fill in the blank variables with your own data.
 ### 5. Open docker app.
 ### 6. Lastly you have to use these commands to run the project:
-- #### Run: bun i / bun install.
+- #### Run: bun install
+- #### Run: cd socket
+  - #### Run: bun install
 - #### Run: 'bun run db:generate'.
 - #### Run: 'docker compose up'. optional: 'docker compose up -d'
 - #### Run: 'bun run db:push'.
