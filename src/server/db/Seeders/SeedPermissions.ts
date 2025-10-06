@@ -12,10 +12,10 @@ interface Permission {
 
 export async function seedPermissions() {
   const predefinedPermissions: Permission[] = [
-    { id: 1, name: "create leave request", action: "create", resource: "leave request", createdAt: new Date() },
-    { id: 2, name: "read leave request", action: "read", resource: "leave request", createdAt: new Date() },
-    { id: 3, name: "update leave request", action: "update", resource: "leave request", createdAt: new Date() },
-    { id: 3, name: "delete leave request", action: "update", resource: "leave request", createdAt: new Date() },
+    { id: 1, name: "create leave request", action: "create", resource: "leave_request", createdAt: new Date() },
+    { id: 2, name: "read leave request", action: "read", resource: "leave_request", createdAt: new Date() },
+    { id: 3, name: "update leave request", action: "update", resource: "leave_request", createdAt: new Date() },
+    { id: 4, name: "delete leave request", action: "update", resource: "leave_request", createdAt: new Date() },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where
