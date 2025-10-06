@@ -6,14 +6,17 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import {initTRPC} from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import {ZodError} from "zod";
-import { TRPCError } from "@trpc/server";
 
 import {db} from "~/server/db";
 import {getSocket} from "../../../utils/socket-client";
-import {auth} from "utils/auth";
+import { auth } from "utils/auth";
+import {
+  loadUserPermissionSet,
+  type PermissionKey,
+} from "~/server/auth/permission";
 
 /**
  * 1. CONTEXT
@@ -30,16 +33,24 @@ import {auth} from "utils/auth";
 export const createTRPCContext = async (opts: { headers: Headers }) => {
 
     const session = await auth.api.getSession({
-        headers: opts.headers,
+      headers: opts.headers,
     });
 
+    const user = session?.user ?? null;
+
+    const perms = user?.id
+      ? await loadUserPermissionSet(user.id)
+      : new Set<PermissionKey>();
+
     return {
-        db,
-        ...opts,
-        socket: getSocket(),
-        session,
-        user: session?.user ?? null,
-    }
+      db,
+      ...opts,
+      socket: getSocket(),
+      session,
+      user,
+      perms,
+      hasPermission: (key: PermissionKey) => perms.has(key),
+    };
 };
 
 /**
@@ -136,4 +147,10 @@ export const protectedProcedure = t.procedure
         session: { ...ctx.session, user: ctx.session.user },
       },
     });
+  });
+
+export const requirePermission = (key: PermissionKey) =>
+  t.middleware(({ ctx, next }) => {
+    if (!ctx.perms.has(key)) throw new TRPCError({ code: "FORBIDDEN" });
+    return next();
   });
