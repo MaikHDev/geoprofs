@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { signIn } from "../../../utils/auth-actions";
+import {redirect} from "next/navigation";
 
 interface SignInPageProps {
   handleSignIn: () => void;
@@ -12,8 +13,7 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  async function handleSignIn(e: React.FormEvent) {
-    e.preventDefault();
+  async function SignIn() {
     setError(null);
 
     if (password.length < 8) {
@@ -28,11 +28,20 @@ export default function SignInPage() {
       if (!result.user) {
         setError("Invalid email or password");
       }
+
+      if (result.redirect && result.url){
+        redirect(result.url)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSignIn(e: React.FormEvent) {
+    e.preventDefault();
+    void SignIn();
   }
 
   return (

@@ -1,6 +1,6 @@
-import {pgTable, text, timestamp, index, primaryKey, pgEnum} from "drizzle-orm/pg-core";
-import {sql} from "drizzle-orm";
+import {pgTable, text, timestamp, index, primaryKey, pgEnum, unique} from "drizzle-orm/pg-core";
 import {relations} from "drizzle-orm/relations";
+import {sql} from "drizzle-orm";
 
 export const Actions = pgEnum("Actions", [
     "create",
@@ -10,7 +10,7 @@ export const Actions = pgEnum("Actions", [
 ]);
 
 export const ReasonsForLeave = pgEnum("ReasonsForLeave", [
-    "vacation",
+    "leave",
     "personal",
     "medical",
     "extra",
@@ -18,30 +18,32 @@ export const ReasonsForLeave = pgEnum("ReasonsForLeave", [
 
 export const Statuses = pgEnum("Statuses", [
     "pending",
+    "opened",
     "approved",
     "renewal",
     "denied",
 ]);
 
-export const posts = pgTable(
-    "post",
-    (d) => ({
-        id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-        name: d.varchar({length: 255}),
-        createdAt: d
-            .timestamp({withTimezone: true})
-            .default(sql`CURRENT_TIMESTAMP`)
-            .notNull(),
-        updatedAt: d
-            .timestamp({withTimezone: true})
-            .$onUpdate(() => new Date())
-            .notNull(),
-    }),
-);
+export const LogEvents = pgEnum("LogEvents", [
+    "created",
+    "changed",
+    "assigned",
+    "deleted",
+    "logged_in",
+]);
+
+export const LogContext = pgEnum("LogContext", [
+    "permissions",
+    "users",
+    "roles",
+    "leave_requests",
+    "departments",
+]);
 
 export const user = pgTable("user", (d) => ({
     id: d.text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     name: d.varchar({length: 100}).notNull(),
+    lastName: d.varchar({length: 100}),
     email: d.varchar({length: 255}).notNull().unique(),
     emailVerified: d.boolean().default(false).notNull(),
     image: d.text(),
@@ -50,21 +52,15 @@ export const user = pgTable("user", (d) => ({
         .defaultNow()
         .$onUpdate(() => /* @__PURE__ */ new Date())
         .notNull(),
-    supervisor: d.text(),
+    vacationDays: d.integer(),
 }));
 
 export const userRelations = relations(user, ({many, one}) => ({
     userRoles: many(userRoles),
     sessions: many(session),
-    supervisors: many(user, {relationName: "usersSupervisor"}),
-
-    userSupervisor: one(user, {
-        fields: [user.supervisor],
-        references: [user.id],
-        relationName: "usersSupervisor"
-    }),
 
     account: one(account, {fields: [user.id], references: [account.userId]}),
+    departmentSupervisor: one(departments, {fields: [user.id], references: [departments.superVisor]})
 }))
 
 export const roles = pgTable("roles", (d) => ({
@@ -76,7 +72,6 @@ export const roles = pgTable("roles", (d) => ({
         .default(sql`CURRENT_TIMESTAMP`)
         .notNull(),
     updatedAt: d.timestamp({withTimezone: true}).$onUpdate(() => new Date()),
-    isActive: d.boolean(),
 }));
 export const rolesRelations = relations(roles, ({many}) => ({
     userRole: many(userRoles),
@@ -89,12 +84,12 @@ export const userRoles = pgTable(
         roleId: d
             .integer()
             .notNull()
-            .references(() => roles.id),
+            .references(() => roles.id, {onDelete: "cascade"}),
         userId: d
             .varchar({length: 255})
             .notNull()
             .unique()
-            .references(() => user.id),
+            .references(() => user.id, {onDelete: "cascade"}),
         assignedAt: d
             .timestamp({withTimezone: true})
             .default(sql`CURRENT_TIMESTAMP`)
@@ -112,16 +107,19 @@ export const userRolesRelations = relations(userRoles, ({one}) => ({
 }));
 
 export const permissions = pgTable("permissions", (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({length: 30}).notNull().unique(),
-    resource: d.varchar({length: 30}).notNull(),
-    action: Actions("action").notNull(),
-    description: d.text(),
-    createdAt: d
-        .timestamp({withTimezone: true})
-        .default(sql`CURRENT_TIMESTAMP`)
-        .notNull(),
-}));
+        id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
+        resource: d.varchar({length: 30}).notNull(),
+        action: Actions("action").notNull(),
+        description: d.text(),
+        createdAt: d
+            .timestamp({withTimezone: true})
+            .default(sql`CURRENT_TIMESTAMP`)
+            .notNull(),
+    }),
+    (t) => [
+        unique().on(t.resource, t.action)
+    ]
+);
 export const permissionRelations = relations(permissions, ({many}) => ({
     rolePermission: many(rolePermissions),
 }));
@@ -132,11 +130,11 @@ export const rolePermissions = pgTable(
         roleId: d
             .integer()
             .notNull()
-            .references(() => roles.id),
+            .references(() => roles.id, {onDelete: "cascade"}),
         permissionId: d
             .integer()
             .notNull()
-            .references(() => permissions.id),
+            .references(() => permissions.id, {onDelete: "cascade"}),
         assignedAt: d
             .timestamp({withTimezone: true})
             .default(sql`CURRENT_TIMESTAMP`)
@@ -211,42 +209,32 @@ export const verification = pgTable("verification", {
 });
 
 export const requestForLeave = pgTable("requestForLeave", (d) => ({
-    id: d.integer().primaryKey(),
-    userId: text().notNull().references(() => user.id),
-    subject: d.varchar({length: 100}).notNull(),
+    id: d.integer().primaryKey().generatedAlwaysAsIdentity(),
+    userId: d.text().notNull().references(() => user.id, {onDelete: "cascade"}),
     reasonOfLeave: ReasonsForLeave().notNull(),
     status: Statuses().notNull().default('pending'),
     dateLeaveStart: d.timestamp().notNull(),
     dateLeaveEnd: d.timestamp().notNull(),
     reasoning: d.text().notNull(),
-    feedback: d.text().notNull(),
-    reviewer: d.text().notNull().references(() => user.id),
-    createdAt: timestamp("created_at").defaultNow().notNull(),
-    updatedAt: timestamp("updated_at")
+    feedback: d.text(),
+    reviewer: d.text().references(() => user.id),
+    createdAt: d.timestamp("created_at").defaultNow().notNull(),
+    updatedAt: d.timestamp("updated_at")
         .defaultNow()
         .$onUpdate(() => /* @__PURE__ */ new Date())
         .notNull(),
 }));
 
-export const usersTimeOff = pgTable("usersTimeOff",
-    (d) => ({
-        userId: d.text().notNull().references(() => user.id).primaryKey(),
-        vacationDays: d.integer().notNull().default(0),
-        vacationDaysLeft: d.integer().notNull().default(0),
-        sickDaysOff: d.integer().notNull().default(0),
-        personalDaysOff: d.integer().notNull().default(0),
-        updatedAt: timestamp()
-            .defaultNow()
-            .$onUpdate(() => new Date())
-            .notNull(),
+export const requestForLeaveRelations = relations(requestForLeave, ({one}) => ({
+    user: one(user, {
+        fields: [requestForLeave.userId],
+        references: [user.id]
     }),
-    (t) => [
-        index().on(t.vacationDays),
-        index().on(t.vacationDaysLeft),
-        index().on(t.sickDaysOff),
-        index().on(t.personalDaysOff),
-    ]
-);
+    reviewer: one(user, {
+        fields: [requestForLeave.userId],
+        references: [user.id]
+    }),
+}))
 
 export const departments = pgTable("departments",
     (d) => ({
@@ -254,16 +242,21 @@ export const departments = pgTable("departments",
         startupDate: d.timestamp()
             .defaultNow()
             .notNull(),
+        superVisor: d.text().notNull().references(() => user.id),
     })
 );
 
-export const departmentsRelations = relations(departments, ({many}) => ({
+export const departmentsRelations = relations(departments, ({many, one}) => ({
     userDepartments: many(userDepartments),
+    superVisor: one(user, {
+        fields: [departments.superVisor],
+        references: [user.id]
+    })
 }));
 
 export const userDepartments = pgTable("userDepartments", (d) => ({
-        userId: d.text().references(() => user.id),
-        departmentName: d.varchar({length: 50}).references(() => departments.name),
+        userId: d.text().references(() => user.id, {onDelete: "cascade"}),
+        departmentName: d.varchar({length: 50}).references(() => departments.name, {onDelete: "cascade"}),
         joinedAt: d.timestamp()
             .defaultNow()
             .notNull(),
@@ -282,4 +275,22 @@ export const userDepartmentsRelations = relations(userDepartments, ({one}) => ({
         fields: [userDepartments.departmentName],
         references: [departments.name]
     }),
+}));
+
+export const logs = pgTable("logs",
+    (d) => ({
+        id: d.bigint({mode: "number"}).primaryKey().generatedAlwaysAsIdentity(),
+        userId: d.text("userId").notNull().references(() => user.id),
+        logEvent: LogEvents().notNull(),
+        logContext: LogContext().notNull(),
+        updatedAt: d.timestamp("updated_at")
+            .defaultNow()
+            .$onUpdate(() => /* @__PURE__ */ new Date())
+            .notNull(),
+        details: d.jsonb("details").notNull(),
+    })
+);
+
+export const logsRelations = relations(logs, ({one}) => ({
+    user: one(user, {fields: [logs.userId], references: [user.id]})
 }));

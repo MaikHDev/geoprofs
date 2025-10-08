@@ -8,12 +8,6 @@ import {api} from "~/trpc/react";
 type SocketContextType = {
     socket: Socket;
     isConnected: boolean;
-    latestPosts: {
-        id: number;
-        name: string | null;
-        createdAt: Date;
-        updatedAt: Date | null
-    }[]
 };
 
 const SocketContext = createContext<SocketContextType | null>(null);
@@ -22,8 +16,6 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({childre
 
     const socket = getSocket();
     const [isConnected, setIsConnected] = useState(socket.connected);
-
-    const [latestPosts] = api.post.getAllLatest.useSuspenseQuery();
 
     const utils= api.useUtils();
 
@@ -42,21 +34,15 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({childre
         socket.on("connect", onConnect);
         socket.on("disconnect", onDisconnect);
 
-        socket.on("trpc:createpost", async (msg: string) => {
-            await utils.post.getAllLatest.invalidate();
-        });
-
-
         return () => {
             socket.off("connect", onConnect);
             socket.off("disconnect", onDisconnect);
-            socket.off("trpc:createpost");
             socket.disconnect();
         };
     }, []);
 
     return (
-        <SocketContext.Provider value={{socket, isConnected, latestPosts}}>
+        <SocketContext.Provider value={{socket, isConnected}}>
             {children}
         </SocketContext.Provider>
     );
