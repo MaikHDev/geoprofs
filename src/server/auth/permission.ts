@@ -1,9 +1,7 @@
 import { db } from "~/server/db";
 import { permissions, rolePermissions, userRoles } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
-
-export type PermissionKey =
-  `${string}.${"create" | "read" | "update" | "delete"}`;
+import type { PermissionKey } from "~/shared/permissions";
 
 export async function loadUserPermissionSet(
   userId: string,

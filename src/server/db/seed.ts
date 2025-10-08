@@ -1,11 +1,11 @@
-import { seedRoles } from "~/server/db/Seeders/SeedRoles";
 import { pool } from "~/server/db";
 import { seedPermissions } from "~/server/db/Seeders/SeedPermissions";
 import { seedUsers } from "~/server/db/Seeders/SeedUsers";
 import { seedUserHasRoles } from "~/server/db/Seeders/SeedUserHasRoles";
 import { seedRolesHasPermissions } from "~/server/db/Seeders/SeedRolesHasPermissions";
 import { seedDelete } from "~/server/db/Seeders/DeleteSeeders";
-import { signIn } from "../../../utils/auth-actions";
+import { seedAccounts } from "~/server/db/Seeders/SeedAccounts";
+import { seedRoles } from "~/server/db/Seeders/seedRoles";
 
 async function main() {
 
@@ -33,6 +33,10 @@ async function main() {
                 await seedUserHasRoles();
                 break;
 
+            case "accounts":
+                await seedAccounts();
+                break;
+
             case "delete":
                 await seedDelete();
                 break;
@@ -44,6 +48,7 @@ async function main() {
               await seedRolesHasPermissions()
               await seedUsers();
               await seedUserHasRoles();
+              await seedAccounts();
               break;
 
             default: console.error("Unknown argument");
