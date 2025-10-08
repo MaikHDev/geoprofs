@@ -13,10 +13,8 @@ import {ZodError} from "zod";
 import {db} from "~/server/db";
 import {getSocket} from "../../../utils/socket-client";
 import { auth } from "utils/auth";
-import {
-  loadUserPermissionSet,
-  type PermissionKey,
-} from "~/server/auth/permission";
+import { loadUserPermissionSet, } from "~/server/auth/permission";
+import type { PermissionKey } from "~/shared/permissions";
 
 /**
  * 1. CONTEXT
@@ -38,8 +36,8 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 
     const user = session?.user ?? null;
 
-    const perms = user?.id
-      ? await loadUserPermissionSet(user.id)
+    const perms = user?.email
+      ? await loadUserPermissionSet(user.email)
       : new Set<PermissionKey>();
 
     return {

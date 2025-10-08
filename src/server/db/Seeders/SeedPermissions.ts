@@ -15,7 +15,7 @@ export async function seedPermissions() {
     { id: 1, name: "create leave request", action: "create", resource: "leave_request", createdAt: new Date() },
     { id: 2, name: "read leave request", action: "read", resource: "leave_request", createdAt: new Date() },
     { id: 3, name: "update leave request", action: "update", resource: "leave_request", createdAt: new Date() },
-    { id: 4, name: "delete leave request", action: "update", resource: "leave_request", createdAt: new Date() },
+    { id: 4, name: "delete leave request", action: "delete", resource: "leave_request", createdAt: new Date() },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where

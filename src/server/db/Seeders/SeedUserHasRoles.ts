@@ -4,15 +4,15 @@ import { userRoles } from "~/server/db/schema";
 
 interface UserHasRoles {
   roleId: number;
-  userId: string;
+  userEmail: string;
   assignedAt?: Date;
   id?: string;
 }
 
 export async function seedUserHasRoles() {
   const predefinedUserHasRoles: UserHasRoles[] = [
-    { id: "1", roleId: 1, userId: "1", assignedAt: new Date() },
-    { id: "2", roleId: 2, userId: "2", assignedAt: new Date()  },
+    { id: "1", roleId: 1, userEmail: "email1@email.com", assignedAt: new Date() },
+    { id: "2", roleId: 2, userEmail: "email2@email.com", assignedAt: new Date()  },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where

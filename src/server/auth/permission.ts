@@ -4,9 +4,9 @@ import { eq } from "drizzle-orm";
 import type { PermissionKey } from "~/shared/permissions";
 
 export async function loadUserPermissionSet(
-  userId: string,
+  userEmail: string,
 ): Promise<Set<PermissionKey>> {
-  if (!userId) return new Set<PermissionKey>();
+  if (!userEmail) return new Set<PermissionKey>();
 
   const rows = await db
     .select({
@@ -16,7 +16,7 @@ export async function loadUserPermissionSet(
     .from(userRoles)
     .innerJoin(rolePermissions, eq(userRoles.roleId, rolePermissions.roleId))
     .innerJoin(permissions, eq(rolePermissions.permissionId, permissions.id))
-    .where(eq(userRoles.userId, userId));
+    .where(eq(userRoles.userEmail, userEmail));
 
   const keys = rows.map<PermissionKey>((r) => `${r.resource}.${r.action}`);
   return new Set<PermissionKey>(keys);
