@@ -20,7 +20,6 @@ export async function seedUsersAndAccounts() {
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(account);
 
-
   for (const u of users) {
     await auth.api.signUpEmail({
       body: { email: u.email, password: u.password, name: u.name },
