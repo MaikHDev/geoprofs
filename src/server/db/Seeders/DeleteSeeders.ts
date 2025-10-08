@@ -1,4 +1,5 @@
 import {
+  account,
   permissions,
   rolePermissions,
   roles,
@@ -20,6 +21,8 @@ export async function seedDelete() {
   await db.delete(roles);
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(user);
+  // eslint-disable-next-line drizzle/enforce-delete-with-where
+  await db.delete(account);
 
 
   console.log("Delete ran");
