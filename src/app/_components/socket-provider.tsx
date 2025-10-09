@@ -1,4 +1,6 @@
 "use client"
+export const dynamic = "force-dynamic"; // 👈 this line is key
+
 
 import React, {createContext, useContext, useEffect, useState} from "react";
 import {type Socket} from "socket.io-client";
@@ -23,7 +25,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({childre
     const socket = getSocket();
     const [isConnected, setIsConnected] = useState(socket.connected);
 
-    const [latestPosts] = api.post.getAllLatest.useSuspenseQuery();
+    const [latestPosts, setLatestPosts] = useState<SocketContextType["latestPosts"]>([]);
+
+    const getAllLatest = api.post.getAllLatest.useQuery(undefined, { enabled: false });
 
     const utils= api.useUtils();
 
@@ -31,6 +35,9 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({childre
     useEffect(() => {
         socket.connect();
 
+        getAllLatest.refetch().then(({ data }) => {
+            if (data) setLatestPosts(data);
+        });
         function onConnect() {
             setIsConnected(true);
         }
