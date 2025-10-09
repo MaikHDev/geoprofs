@@ -1,89 +1,99 @@
 "use client";
-import { useState } from "react";
-import { signIn } from "../../../utils/auth-actions";
-import {redirect} from "next/navigation";
+import {useState} from "react";
+import {signIn} from "../../../utils/auth-actions";
+import {useRouter} from "next/navigation";
+import {api} from "~/trpc/react";
 
 interface SignInPageProps {
-  handleSignIn: () => void;
+    handleSignIn: () => void;
 }
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const router = useRouter();
+    const logs = api.auditTrail.getAllLogs.useSuspenseQuery();
 
-  async function SignIn() {
-    setError(null);
+    async function handleSignIn(e: React.FormEvent) {
+        e.preventDefault();
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
+        setError(null);
+
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const result = await signIn(email, password);
+
+            if (!result.user) {
+                setError("Invalid email or password");
+            }
+
+            if (result.redirect && result.url) {
+                console.log(result.url)
+                router.push(result.url)
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Unknown error");
+        } finally {
+            setLoading(false);
+        }
     }
 
-    setLoading(true);
-    try {
-      const result = await signIn(email, password);
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-gray-100">
+            <form
+                onSubmit={handleSignIn}
+                className="w-full max-w-sm rounded-xl bg-white p-8 shadow-md"
+            >
+                <h1 className="mb-6 text-center text-2xl font-bold">Sign In</h1>
+                <h6 className="text-center text-[8px]"><b>* Redirecting after login *</b></h6>
+                {error && <p className="mb-4 text-red-500">{error}</p>}
+                <div className="mb-4">
+                    <label className="mb-1 block font-medium">Email</label>
+                    <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full rounded-lg border px-3 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
+                        required
+                    />
+                </div>
 
-      if (!result.user) {
-        setError("Invalid email or password");
-      }
+                <div className="mb-6">
+                    <label className="mb-1 block font-medium">Password</label>
+                    <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full rounded-lg border px-3 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
+                        required
+                    />
+                </div>
 
-      if (result.redirect && result.url){
-        redirect(result.url)
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleSignIn(e: React.FormEvent) {
-    e.preventDefault();
-    void SignIn();
-  }
-
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSignIn}
-        className="w-full max-w-sm rounded-xl bg-white p-8 shadow-md"
-      >
-        <h1 className="mb-6 text-center text-2xl font-bold">Sign In</h1>
-
-        {error && <p className="mb-4 text-red-500">{error}</p>}
-
-        <div className="mb-4">
-          <label className="mb-1 block font-medium">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-lg border px-3 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
-            required
-          />
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full rounded-lg bg-blue-600 py-2 text-white transition hover:bg-blue-700"
+                >
+                    {loading ? "Signing in..." : "Sign In"}
+                </button>
+                {logs[0]?.map((log, idx) => {
+                    return (
+                        <div className="mb-6 " key={idx}>
+                            <div>{log.logContext}</div>
+                            <div>{log.logEvent}</div>
+                            <div>{log.updatedAt.toDateString()}</div>
+                            <div>{log.userId}</div>
+                        </div>
+                    )
+                })}
+            </form>
         </div>
-
-        <div className="mb-6">
-          <label className="mb-1 block font-medium">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-lg border px-3 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-lg bg-blue-600 py-2 text-white transition hover:bg-blue-700"
-        >
-          {loading ? "Signing in..." : "Sign In"}
-        </button>
-      </form>
-    </div>
-  );
+    );
 }
