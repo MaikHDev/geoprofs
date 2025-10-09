@@ -1,27 +1,29 @@
-import { Server as Engine } from "@socket.io/bun-engine";
-import { Server } from "socket.io";
+import { createServer } from "http";
+import { Server,  type Socket } from "socket.io";
 
-const io = new Server();
+const httpServer = createServer((req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("socket server ok");
+});
 
-const engine = new Engine({
-    path: "/socket.io/",
+const io = new Server(httpServer, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: "*",
         methods: ["POST", "GET"],
-    }
+    }, // tighten later
 });
 
-io.bind(engine);
+io.on("connection", (socket: Socket) => {
+    console.log("conn", socket.id);
 
-io.on("connection", (socket) => {
-    socket.on("trpc:createpost", (name: string) => {
-        io.emit("trpc:createpost", name);
-    })
+    socket.on("msg", (data: string) => {
+        io.emit("msg", data);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("disconnected:", socket.id);
+    });
 });
 
-export default {
-    port: 4000,
-    idleTimeout: 30, // must be greater than the "pingInterval" option of the engine, which defaults to 25 seconds
-
-    ...engine.handler(),
-};
+const port = Number(process.env.SOCKET_PORT) ?? 10000;
+httpServer.listen(port, () => console.log(`listening on port ${port}`));

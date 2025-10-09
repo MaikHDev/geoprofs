@@ -1,0 +1,8 @@
+services:
+  socket:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${SOCKET_PORT}:${SOCKET_PORT}"
+    restart: always

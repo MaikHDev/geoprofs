@@ -14,7 +14,7 @@ RUN bun install
 COPY . .
 
 # Expose the port your app listens on
-EXPOSE 4000
+EXPOSE 10000
 
 # Start the server
 CMD ["bun", "run", "server"]

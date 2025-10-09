@@ -1,6 +1,6 @@
 import {io} from "socket.io-client";
 
-const socket = io("http://localhost:4000", {
+const socket = io(`${process.env.SOCKET_URL}:${process.env.SOCKET_PORT}`, {
     path: "/socket.io/",
     protocols: ["GET", "POST"],
     transports: ['websocket', 'polling'],
