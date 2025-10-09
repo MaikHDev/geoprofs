@@ -1,5 +1,4 @@
 "use client";
-export const dynamic = "force-dynamic"; // 👈 this line is key
 
 import {useState} from "react";
 
