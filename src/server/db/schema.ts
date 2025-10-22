@@ -85,25 +85,25 @@ export const userRoles = pgTable(
             .integer()
             .notNull()
             .references(() => roles.id, {onDelete: "cascade"}),
-        userId: d
+        userEmail: d
             .varchar({length: 255})
             .notNull()
             .unique()
-            .references(() => user.id, {onDelete: "cascade"}),
+            .references(() => user.email, {onDelete: "cascade"}),
         assignedAt: d
             .timestamp({withTimezone: true})
             .default(sql`CURRENT_TIMESTAMP`)
             .notNull(),
     }),
     (t) => [
-        primaryKey({columns: [t.roleId, t.userId]}),
+        primaryKey({columns: [t.roleId, t.userEmail]}),
         index().on(t.roleId),
-        index().on(t.userId),
+        index().on(t.userEmail),
     ],
 );
 export const userRolesRelations = relations(userRoles, ({one}) => ({
     role: one(roles, {fields: [userRoles.roleId], references: [roles.id]}),
-    user: one(user, {fields: [userRoles.userId], references: [user.id]}),
+    user: one(user, {fields: [userRoles.userEmail], references: [user.email]}),
 }));
 
 export const permissions = pgTable("permissions", (d) => ({

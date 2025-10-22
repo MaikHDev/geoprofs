@@ -1,5 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import {auditTrailRouter} from "~/server/api/routers/audit-trail";
+import { authRouter } from "~/server/api/routers/auth";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +9,7 @@ import {auditTrailRouter} from "~/server/api/routers/audit-trail";
  */
 export const appRouter = createTRPCRouter({
   auditTrail: auditTrailRouter,
+  auth: authRouter,
 });
 
 // export type definition of API
