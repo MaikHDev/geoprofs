@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { ToastContainer, toast } from 'react-toastify';
 import { api } from "~/trpc/react";
 
 export default function CreateRequestForLeave() {
@@ -37,8 +38,10 @@ export default function CreateRequestForLeave() {
       setDateLeaveStart(new Date());
       setDateLeaveEnd(new Date());
       setReasoning("");
+      toast.info("Request placed!");
     } catch (err: any) {
       setError(err.message || "Information invalid");
+      toast.error(err.message);
     }
   }
 
@@ -139,6 +142,7 @@ export default function CreateRequestForLeave() {
             {createRequest.isPending ? "Submitting..." : "Submit Request"}
           </button>
         </div>
+        <ToastContainer/>
       </form>
     </div>
   );
