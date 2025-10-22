@@ -1,6 +1,7 @@
 import { postRouter } from "~/server/api/routers/post";
 import { leaveRequestsRouter } from "~/server/api/routers/leaveRequest";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { authRouter } from "~/server/api/routers/auth";
 
 /**
  * This is the primary router for your server.
@@ -9,6 +10,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   post: postRouter,
+  auth: authRouter,
   leaveRequest: leaveRequestsRouter,
 });
 
