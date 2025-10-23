@@ -1,3 +1,4 @@
+import {Bun} from "bun-types"
 import { pool } from "~/server/db";
 import { seedPermissions } from "~/server/db/Seeders/SeedPermissions";
 import { seedUsersAndAccounts } from "~/server/db/Seeders/SeedUsersAndAccounts";
