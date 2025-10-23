@@ -3,7 +3,7 @@
 import React, {createContext, useContext, useEffect, useState} from "react";
 import {type Socket} from "socket.io-client";
 import {getSocket} from "../../../utils/socket-client";
-import {api} from "~/trpc/react";
+import { api, type RouterOutputs } from "~/trpc/react";
 
 type SocketContextType = {
     socket: Socket;
@@ -12,7 +12,12 @@ type SocketContextType = {
 
 const SocketContext = createContext<SocketContextType | null>(null);
 
-export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({children}) => {
+type SocketProviderProps = {
+    children: React.ReactNode;
+    initialPosts: RouterOutputs["post"]["getAllLatest"];
+};
+
+export const SocketProvider: React.FC<SocketProviderProps> = ({ children, initialPosts }) => {
 
     const socket = getSocket();
     const [isConnected, setIsConnected] = useState(socket.connected);

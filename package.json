@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "seed:all": "bun run src/server/db/seed.ts all",
+    "seed": "bun run src/server/db/seed.ts",
     "build": "next build",
     "check": "next lint && tsc --noEmit",
     "db:generate": "drizzle-kit generate",
