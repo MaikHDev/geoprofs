@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer, toast } from "react-toastify";
 import { api } from "~/trpc/react";
 
 export default function CreateRequestForLeave() {
   const [error, setError] = useState<string | null>(null);
-  const [reasonOfLeave, setReasonOfLeave] = useState<"vacation" | "personal" | "medical" | "extra">("vacation");
+  const [reasonOfLeave, setReasonOfLeave] = useState<
+    "vacation" | "personal" | "medical" | "extra"
+  >("vacation");
   const [dateLeaveStart, setDateLeaveStart] = useState<Date>(new Date());
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
@@ -16,12 +18,26 @@ export default function CreateRequestForLeave() {
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
 
+  const formatDate = (date: Date): string => date.toISOString().split("T")[0]!;
+
+  const today = formatDate(new Date());
+
   async function handleCreateRequest(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     if (!dateLeaveStart || !dateLeaveEnd) {
       setError("Please select start and end dates.");
+      return;
+    }
+
+    if (dateLeaveEnd < dateLeaveStart) {
+      setError("End date cannot be before the start date.");
+      return;
+    }
+
+    if (dateLeaveStart < new Date(today)) {
+      setError("Start date cannot be in the past.");
       return;
     }
 
@@ -40,8 +56,8 @@ export default function CreateRequestForLeave() {
       setReasoning("");
       toast.success("Request placed!");
     } catch (err) {
-      if(err && err instanceof Error) {
-        setError( err.message ?? "Unknown error");
+      if (err && err instanceof Error) {
+        setError(err.message ?? "Unknown error");
         toast.error(err.message);
       }
     }
@@ -56,7 +72,6 @@ export default function CreateRequestForLeave() {
         <h1 className="text-2xl font-semibold text-[#000000] text-center">
           Request for Leave
         </h1>
-
         <div>
           <p className="font-medium mb-2 text-[#000000]">Reason for Leave:</p>
           <div className="flex flex-wrap gap-4">
@@ -80,7 +95,6 @@ export default function CreateRequestForLeave() {
             ))}
           </div>
         </div>
-
         <div className="grid grid-cols-2 gap-6">
           <div className="flex flex-col">
             <label className="font-medium mb-1 text-[#000000]">
@@ -93,8 +107,18 @@ export default function CreateRequestForLeave() {
               <input
                 ref={startDateRef}
                 type="date"
-                value={dateLeaveStart.toISOString().split("T")[0]}
-                onChange={(e) => setDateLeaveStart(new Date(e.target.value))}
+                min={today}
+                value={formatDate(dateLeaveStart)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (!value) return;
+                  const newStart = new Date(value);
+                  setDateLeaveStart(newStart);
+
+                  if (dateLeaveEnd < newStart) {
+                    setDateLeaveEnd(newStart);
+                  }
+                }}
                 className="w-full outline-none text-[#000000] cursor-pointer bg-transparent"
               />
             </div>
@@ -109,14 +133,18 @@ export default function CreateRequestForLeave() {
               <input
                 ref={endDateRef}
                 type="date"
-                value={dateLeaveEnd.toISOString().split("T")[0]}
-                onChange={(e) => setDateLeaveEnd(new Date(e.target.value))}
+                min={formatDate(dateLeaveStart)}
+                value={formatDate(dateLeaveEnd)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (!value) return;
+                  setDateLeaveEnd(new Date(value));
+                }}
                 className="w-full outline-none text-[#000000] cursor-pointer bg-transparent"
               />
             </div>
           </div>
         </div>
-
         <div className="flex flex-col">
           <label className="font-medium mb-1 text-[#000000]">Reasoning:</label>
           <textarea
@@ -125,7 +153,6 @@ export default function CreateRequestForLeave() {
             className="border border-[#CCCCCC] rounded-[4px] px-3 py-2 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-[#00888F]"
           />
         </div>
-
         <div className="flex flex-col">
           {error && (
             <p className="text-[#FF3333] text-sm text-center font-medium mb-3">
@@ -144,7 +171,7 @@ export default function CreateRequestForLeave() {
             {createRequest.isPending ? "Submitting..." : "Submit Request"}
           </button>
         </div>
-        <ToastContainer/>
+        <ToastContainer />
       </form>
     </div>
   );
