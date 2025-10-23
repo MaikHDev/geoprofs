@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { api } from "~/trpc/react";
+import { ToastContainer, toast } from 'react-toastify';
+
 
 export default function EditRequestForLeave({ requestId }: { requestId: number }) {
   const [error, setError] = useState<string | null>(null);
@@ -45,8 +47,11 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
       });
 
       alert("Leave request updated successfully!");
-    } catch (err: any) {
-      setError(err.message || "Failed to update request.");
+    } catch (err) {
+      if(err && err instanceof Error) {
+        setError( err.message ?? "Unknown error");
+        toast.error(err.message);
+      }    
     }
   }
 
@@ -132,6 +137,7 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
         >
           {updateRequest.isPending ? "Updating..." : "Update Request"}
         </button>
+        <ToastContainer/>
       </form>
     </div>
   );

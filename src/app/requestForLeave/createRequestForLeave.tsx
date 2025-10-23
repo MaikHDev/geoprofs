@@ -38,10 +38,12 @@ export default function CreateRequestForLeave() {
       setDateLeaveStart(new Date());
       setDateLeaveEnd(new Date());
       setReasoning("");
-      toast.info("Request placed!");
-    } catch (err: any) {
-      setError(err.message || "Information invalid");
-      toast.error(err.message);
+      toast.success("Request placed!");
+    } catch (err) {
+      if(err && err instanceof Error) {
+        setError( err.message ?? "Unknown error");
+        toast.error(err.message);
+      }
     }
   }
 
