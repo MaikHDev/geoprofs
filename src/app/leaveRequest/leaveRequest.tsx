@@ -1,17 +1,26 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { api } from "~/trpc/react";
 
 export default function LeaveRequestDetailsPage() {
+  const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = api.leaveRequest.getById.useQuery({ id: Number(id) });
   const utils = api.useUtils();
+
   const approveMutation = api.leaveRequest.approve.useMutation({
-    onSuccess: () => utils.leaveRequest.getById.invalidate({ id: Number(id) })
+    onSuccess: async () => {
+      await utils.leaveRequest.getById.invalidate({ id: Number(id) })
+      router.push("/leaveRequests");
+    },
   });
+
   const denyMutation = api.leaveRequest.deny.useMutation({
-    onSuccess: () => utils.leaveRequest.getById.invalidate({ id: Number(id) })
+    onSuccess: async () => {
+      await utils.leaveRequest.getById.invalidate({ id: Number(id) })
+      router.push("/leaveRequests");
+    },
   });
 
   if (isLoading) return <div>Loading...</div>;
