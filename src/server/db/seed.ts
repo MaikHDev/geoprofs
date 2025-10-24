@@ -16,7 +16,7 @@ async function main() {
                 await seedRoles();
                 break;
 
-            case "Permissions":
+            case "permissions":
                 await seedPermissions();
                 break;
 
