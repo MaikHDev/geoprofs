@@ -1,13 +1,10 @@
 import Link from "next/link";
-import { signUp } from "utils/auth-actions";
 
 import { LatestPost } from "~/app/_components/post";
 import { api, HydrateClient } from "~/trpc/server";
 
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
-
-  // await signUp("klaas","klaas@klaas.nl","klaasklaas");
 
   void api.post.getLatest.prefetch();
 
