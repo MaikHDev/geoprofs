@@ -12,13 +12,13 @@ export async function logAction({
                          }: {
     logEvent: NewLog["logEvent"];
     logContext: NewLog["logContext"];
-    userId: string;
-    details?: never;
+    userId: NewLog["userId"];
+    details?: NewLog["details"];
 }) {
     await db.insert(logs).values({
         userId: userId,
         logEvent: logEvent,
         logContext: logContext,
-        details: JSON.stringify(details ?? {})
+        details: details
     });
 }
