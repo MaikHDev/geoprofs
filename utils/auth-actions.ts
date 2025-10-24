@@ -9,16 +9,16 @@ export async function getUserSession() {
 
 // { FOR NOW ONLY AS TESTING PURPOSE! }
 
-export async function signUp(name: string, email: string, password: string) {
-  return await auth.api.signUpEmail({
-    body: {
-      name,
-      email,
-      password,
-      callbackURL: "/signup",
-    },
-  });
-}
+// export async function signUp(name: string, email: string, password: string) {
+//   return await auth.api.signUpEmail({
+//     body: {
+//       name,
+//       email,
+//       password,
+//       callbackURL: "/signup",
+//     },
+//   });
+// }
 
 export async function signIn(email: string, password: string) {
   return await auth.api.signInEmail({

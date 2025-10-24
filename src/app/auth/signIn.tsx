@@ -4,17 +4,12 @@ import {signIn} from "../../../utils/auth-actions";
 import {useRouter} from "next/navigation";
 import {api} from "~/trpc/react";
 
-interface SignInPageProps {
-    handleSignIn: () => void;
-}
-
 export default function SignInPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const logs = api.auditTrail.getAllLogs.useSuspenseQuery();
 
     async function handleSignIn(e: React.FormEvent) {
         e.preventDefault();
@@ -83,16 +78,6 @@ export default function SignInPage() {
                 >
                     {loading ? "Signing in..." : "Sign In"}
                 </button>
-                {logs[0]?.map((log, idx) => {
-                    return (
-                        <div className="mb-6 " key={idx}>
-                            <div>{log.logContext}</div>
-                            <div>{log.logEvent}</div>
-                            <div>{log.updatedAt.toDateString()}</div>
-                            <div>{log.userId}</div>
-                        </div>
-                    )
-                })}
             </form>
         </div>
     );

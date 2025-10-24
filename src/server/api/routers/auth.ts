@@ -3,6 +3,6 @@ import type { PermissionKey } from "~/shared/permissions";
 
 export const authRouter = createTRPCRouter({
     getMyPermissions: protectedProcedure.query(({ ctx }): PermissionKey[] => {
-        return Array.from(ctx.perms) as PermissionKey[];
+        return Array.from(ctx.perms);
     }),
 });
