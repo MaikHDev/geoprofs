@@ -5,6 +5,7 @@ import {Geist} from "next/font/google";
 
 import {TRPCReactProvider} from "~/trpc/react";
 import {SocketProvider} from "~/app/_components/socket-provider";
+import { api } from "~/trpc/server";
 
 export const metadata: Metadata = {
     title: "Create T3 App",
@@ -17,12 +18,15 @@ const geist = Geist({
     variable: "--font-geist-sans",
 });
 
-export default function RootLayout({children}: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({children}: Readonly<{ children: React.ReactNode }>) {
+
+    const posts = await api.post.getAllLatest()
+
     return (
         <html lang="en" className={`${geist.variable}`}>
         <body>
         <TRPCReactProvider>
-            <SocketProvider>{children}</SocketProvider>
+            <SocketProvider initialPosts={posts}>{children}</SocketProvider>
         </TRPCReactProvider>
         </body>
         </html>
