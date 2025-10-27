@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import { api } from "~/trpc/react";
 
 export default function LeaveRequestDetailsPage() {
@@ -9,25 +10,25 @@ export default function LeaveRequestDetailsPage() {
   const { data, isLoading } = api.leaveRequest.getById.useQuery({ id: Number(id) });
   const utils = api.useUtils();
 
-  const approveMutation = api.leaveRequest.approve.useMutation({
+  const updateStatusMutation = api.leaveRequest.updateStatus.useMutation({
     onSuccess: async () => {
       await utils.leaveRequest.getById.invalidate({ id: Number(id) })
       router.push("/leaveRequests");
     },
   });
 
-  const denyMutation = api.leaveRequest.deny.useMutation({
-    onSuccess: async () => {
-      await utils.leaveRequest.getById.invalidate({ id: Number(id) })
-      router.push("/leaveRequests");
-    },
-  });
+  const [selectedStatus, setSelectedStatus] = useState<"approved" | "denied" | null>(null);
 
   if (isLoading) return <div>Loading...</div>;
   if (!data) return <div>Request not found.</div>;
 
+  const handleSave = () => {
+    if (!selectedStatus) return;
+    updateStatusMutation.mutate({ id: Number(id), status: selectedStatus });
+  };
+
   return (
-    <div>
+    <div className="p-6">
       <h1 className="text-xl font-semibold">{data.subject}</h1>
       <p><strong>Requester:</strong> {data.requesterName} ({data.requesterEmail})</p>
       <p><strong>Reason:</strong> {data.reason}</p>
@@ -38,14 +39,28 @@ export default function LeaveRequestDetailsPage() {
 
       <div className="flex gap-4 mt-6">
         <button
-          className="bg-green-500 text-white px-4 py-2 rounded"
-          onClick={() => approveMutation.mutate({ id: Number(id) })}>
+          className={`px-4 py-2 rounded text-white ${
+            selectedStatus === "approved" ? "bg-green-600" : "bg-green-400"
+          }`}
+          onClick={() => setSelectedStatus("approved")}>
           Approve
         </button>
         <button
-          className="bg-red-500 text-white px-4 py-2 rounded"
-          onClick={() => denyMutation.mutate({ id: Number(id) })}>
+          className={`px-4 py-2 rounded text-white ${
+            selectedStatus === "denied" ? "bg-red-600" : "bg-red-400"
+          }`}
+          onClick={() => setSelectedStatus("denied")}>
           Deny
+        </button>
+      </div>
+
+      <div className="mt-6">
+        <button
+          disabled={!selectedStatus || updateStatusMutation.isPending}
+          onClick={handleSave}
+          className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
+        >
+          {updateStatusMutation.isPending ? "Saving..." : "Save"}
         </button>
       </div>
     </div>

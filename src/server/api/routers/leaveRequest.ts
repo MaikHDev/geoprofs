@@ -51,28 +51,17 @@ export const leaveRequestsRouter = createTRPCRouter({
       return req ?? null;
     }),
 
-  approve: protectedProcedure
+  updateStatus: protectedProcedure
     .use(requirePermission("leaveRequest.update"))
-    .input(z.object({ id: z.number() }))
+    .input(z.object({
+      id: z.number(),
+      status: z.enum(["approved", "denied"]),
+    }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db
         .update(requestForLeave)
         .set({
-          status: "approved",
-          reviewer: ctx.session.user.id,
-          updatedAt: new Date(),
-        })
-        .where(eq(requestForLeave.id, input.id));
-    }),
-
-  deny: protectedProcedure
-    .use(requirePermission("leaveRequest.update"))
-    .input(z.object({ id: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .update(requestForLeave)
-        .set({
-          status: "denied",
+          status: input.status,
           reviewer: ctx.session.user.id,
           updatedAt: new Date(),
         })
