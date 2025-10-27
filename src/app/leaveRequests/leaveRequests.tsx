@@ -13,6 +13,7 @@ export default function PendingLeaveRequestsPage() {
           <li key={request.id}>
             <Link href={`/leaveRequest/${request.id}`}>
               <span>{request.subject}</span>
+              <span>{request.reason}</span>
               <span>({request.requesterName})</span>
             </Link>
           </li>
