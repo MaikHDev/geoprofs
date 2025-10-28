@@ -3,7 +3,7 @@
 import { api } from "~/trpc/react";
 import type { PermissionKey } from "~/shared/permissions";
 
-export function usePermission() {
+export function usePermission(p0: string) {
   const { data } = api.auth.getMyPermissions.useQuery();
   const perms = data ?? [];
 
