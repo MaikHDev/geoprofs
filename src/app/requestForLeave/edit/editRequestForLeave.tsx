@@ -3,8 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "~/trpc/react";
 import { ToastContainer, toast } from "react-toastify";
+import { usePermission } from "~/hooks/usePermission";
+import ReturnView from "~/app/_components/returnView";
 
 export default function EditRequestForLeave({ requestId }: { requestId: number }) {
+  const hasPermission = usePermission("leave_request.create");
+    
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<
     "vacation" | "personal" | "medical" | "extra"
@@ -21,8 +25,7 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
 
- const formatDate = (date: Date): string => date.toISOString().split("T")[0]!;
-
+  const formatDate = (date: Date): string => date.toISOString().split("T")[0]!;
 
   const today = formatDate(new Date());
 
@@ -34,6 +37,12 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
       setReasoning(request.reasoning);
     }
   }, [request]);
+
+  if (!hasPermission("leave_request.update")) {
+      return(
+          <ReturnView/>      
+      );
+    }
 
   async function handleEditRequest(e: React.FormEvent) {
     e.preventDefault();

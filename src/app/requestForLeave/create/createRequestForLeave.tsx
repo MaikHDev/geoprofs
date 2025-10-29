@@ -3,24 +3,34 @@
 import { useState, useRef } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { api } from "~/trpc/react";
+import { usePermission } from "~/hooks/usePermission";
+import ReturnView from "~/app/_components/returnView";
 
 export default function CreateRequestForLeave() {
+  const hasPermission = usePermission("leave_request.create");
+  
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<
-    "vacation" | "personal" | "medical" | "extra"
+  "vacation" | "personal" | "medical" | "extra"
   >("vacation");
   const [dateLeaveStart, setDateLeaveStart] = useState<Date>(new Date());
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
-
+  
   const createRequest = api.requestForLeave.create.useMutation();
-
+  
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
-
+  
   const formatDate = (date: Date): string => date.toISOString().split("T")[0]!;
-
+  
   const today = formatDate(new Date());
+
+  if (!hasPermission("leave_request.create")) {
+    return(
+        <ReturnView/>     
+    );
+  }
 
   async function handleCreateRequest(e: React.FormEvent) {
     e.preventDefault();
@@ -39,7 +49,7 @@ export default function CreateRequestForLeave() {
     if (dateLeaveStart < new Date(today)) {
       setError("Start date cannot be in the past.");
       return;
-    }
+    }   
 
     try {
       await createRequest.mutateAsync({
