@@ -1,6 +1,6 @@
 import { createTRPCRouter, protectedProcedure, requirePermission } from "../trpc";
 import { requestForLeave, user } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 export const leaveRequestsRouter = createTRPCRouter({
@@ -49,6 +49,25 @@ export const leaveRequestsRouter = createTRPCRouter({
         .where(eq(requestForLeave.id, input.id));
 
       return req ?? null;
+    }),
+
+  updateMultipleStatus: protectedProcedure
+    .use(requirePermission("leaveRequest.update"))
+    .input(z.object({
+      ids: z.array(z.number().min(1)),
+      status: z.enum(["approved", "denied"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(requestForLeave)
+        .set({
+          status: input.status,
+          reviewer: ctx.session.user.id,
+          updatedAt: new Date(),
+        })
+        .where(
+          inArray(requestForLeave.id, input.ids)
+        );
     }),
 
   updateStatus: protectedProcedure
