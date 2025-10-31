@@ -1,63 +1,64 @@
 import {
-  createTRPCRouter,
-  protectedProcedure,
-  requirePermission,
+    createTRPCRouter,
+    protectedProcedure,
+    requirePermission,
 } from "~/server/api/trpc";
-import { logs, user } from "~/server/db/schema";
-import { and, eq, type InferSelectModel } from "drizzle-orm";
+import {LogEvents} from "~/server/db/schema";
+import {z} from "zod";
+
 
 export const auditTrailRouter = createTRPCRouter({
-  getAllLogs: protectedProcedure
-    .use(requirePermission("log.read"))
-    .query(({ ctx }) => {
-      return ctx.db.query.logs.findMany({
-        with: {
-          user: {
-            columns: {
-              name: true,
-              lastName: true,
-            },
-          },
-        },
-      });
-    }),
+    getAllLogs: protectedProcedure
+        .use(requirePermission("log.read"))
+        .query(({ctx}) => {
+            return ctx.db.query.logs.findMany({
+                with: {
+                    user: {
+                        columns: {
+                            name: true,
+                            lastName: true,
+                        },
+                    },
+                },
+            });
+        }),
+    getUsers: protectedProcedure
+        .use(requirePermission("LogUsers.read"))
+        .input(z.object({
+            event: z.enum(LogEvents.enumValues),
+        }))
+        .query(async ({ctx, input}) => {
+            const {event} = input;
+            return ctx.db.query.logs.findMany({
+                with: {
+                    user: {
+                        columns: {
+                            name: true,
+                            lastName: true,
+                        },
+                    },
+                },
+                where: (logs, {and, eq}) => and(eq(logs.logEvent, event), eq(logs.logContext, "users")),
+            });
+        }),
+    getRequestsForLeave: protectedProcedure
+        .use(requirePermission("LogLeaveRequests.read"))
+        .input(z.object({
+            event: z.enum(LogEvents.enumValues),
+        }))
+        .query(async ({ctx, input}) => {
+            const {event} = input;
+            return ctx.db.query.logs.findMany({
+                with: {
+                    user: {
+                        columns: {
+                            name: true,
+                            lastName: true,
+                        },
+                    },
+                },
+                where: (logs, {and, eq}) => and(eq(logs.logEvent, event), eq(logs.logContext, "leave_requests")),
+            });
+        }),
+})
 
-  getUserLoggedIn: protectedProcedure
-    .use(requirePermission("LogUsers.read"))
-    .query(({ ctx }) => {
-      return ctx.db
-        .select()
-        .from(logs)
-        .where(
-          and(eq(logs.logEvent, "logged_in"), eq(logs.logContext, "users")),
-        );
-    }),
-
-  getUsersCreatedAt: protectedProcedure
-    .use(requirePermission("LogUsers.read"))
-    .query(async ({ ctx }) => {
-      const result = await ctx.db
-        .select({
-          details: logs.details,
-        })
-        .from(logs)
-        .where(and(eq(logs.logEvent, "created"), eq(logs.logContext, "users")));
-
-      return result
-        .map((row) => {
-          const userdata = row.details?.after as Partial<
-            InferSelectModel<typeof user>
-          >;
-          return userdata
-            ? {
-                id: userdata.id,
-                firstName: userdata.name,
-                lastName: userdata.lastName,
-                email: userdata.email,
-                createdAt: userdata.createdAt,
-              }
-            : null;
-        })
-        .filter(Boolean);
-    }),
-});

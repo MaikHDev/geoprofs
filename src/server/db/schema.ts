@@ -235,7 +235,7 @@ export const requestForLeave = pgTable("requestForLeave", (d) => ({
   dateLeaveEnd: d.timestamp().notNull(),
   reasoning: d.text().notNull(),
   feedback: d.text(),
-  reviewer: d.text().references(() => user.id),
+  reviewer: d.text().references(() => user.id, { onDelete: "set null" }),
   createdAt: d.timestamp("created_at").defaultNow().notNull(),
   updatedAt: d
     .timestamp("updated_at")
@@ -309,12 +309,12 @@ type logContext = {
   departments: InferSelectModel<typeof departments>;
 };
 
-type LogContextKeys = keyof logContext;
-
-export type LogsDetails = {
-  before?: Partial<logContext[LogContextKeys]>;
-  after?: Partial<logContext[LogContextKeys]>;
-};
+export type LogsDetails =
+    | { context: "users"; before?: Partial<logContext["users"]>; after?: Partial<logContext["users"]>; }
+    | { context: "roles"; before?: Partial<logContext["roles"]>; after?: Partial<logContext["roles"]>; }
+    | { context: "permissions"; before?: Partial<logContext["permissions"]>; after?: Partial<logContext["permissions"]>; }
+    | { context: "leave_requests"; before?: Partial<logContext["leave_requests"]>; after?: Partial<logContext["leave_requests"]>; }
+    | { context: "departments"; before?: Partial<logContext["departments"]>; after?: Partial<logContext["departments"]>; };
 
 export const logs = pgTable("logs", (d) => ({
   id: d.bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
