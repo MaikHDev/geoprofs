@@ -7,29 +7,27 @@ import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 
 export default function CreateRequestForLeave() {
-  const {hasPermission, isLoading} = usePermission();
-  
+  const { hasPermission, isLoading } = usePermission();
+
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<
-  "vacation" | "personal" | "medical" | "extra"
+    "vacation" | "personal" | "medical" | "extra"
   >("vacation");
   const [dateLeaveStart, setDateLeaveStart] = useState<Date>(new Date());
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
-  
+
   const createRequest = api.requestForLeave.create.useMutation();
-  
+
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
-  
+
   const formatDate = (date: Date): string => date.toISOString().split("T")[0]!;
-  
+
   const today = formatDate(new Date());
 
   if (!isLoading && !hasPermission("LeaveRequest.update")) {
-    return(
-        <ReturnView/>     
-    );
+    return <ReturnView />;
   }
 
   async function handleCreateRequest(e: React.FormEvent) {
@@ -49,7 +47,7 @@ export default function CreateRequestForLeave() {
     if (dateLeaveStart < new Date(today)) {
       setError("Start date cannot be in the past.");
       return;
-    }   
+    }
 
     try {
       await createRequest.mutateAsync({
@@ -72,23 +70,24 @@ export default function CreateRequestForLeave() {
       }
     }
   }
+  if (isLoading) return <p>Loading...</p>;
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-[#F9F9F9] p-6">
+    <div className="flex min-h-screen items-center justify-center bg-[#F9F9F9] p-6">
       <form
         onSubmit={handleCreateRequest}
-        className="bg-white shadow-md p-8 w-full max-w-4xl space-y-6 border border-[#CCCCCC] rounded-[4px]"
+        className="w-full max-w-4xl space-y-6 rounded-[4px] border border-[#CCCCCC] bg-white p-8 shadow-md"
       >
-        <h1 className="text-2xl font-semibold text-[#000000] text-center">
+        <h1 className="text-center text-2xl font-semibold text-[#000000]">
           Request for Leave
         </h1>
         <div>
-          <p className="font-medium mb-2 text-[#000000]">Reason for Leave:</p>
+          <p className="mb-2 font-medium text-[#000000]">Reason for Leave:</p>
           <div className="flex flex-wrap gap-4">
             {["vacation", "personal", "medical", "extra"].map((type) => (
               <label
                 key={type}
-                className="flex items-center space-x-2 p-2 px-3 border border-[#CCCCCC] rounded-[4px] hover:border-[#00888F] cursor-pointer"
+                className="flex cursor-pointer items-center space-x-2 rounded-[4px] border border-[#CCCCCC] p-2 px-3 hover:border-[#00888F]"
               >
                 <input
                   type="radio"
@@ -100,18 +99,18 @@ export default function CreateRequestForLeave() {
                   }
                   className="accent-[#00888F]"
                 />
-                <span className="capitalize text-[#000000]">{type}</span>
+                <span className="text-[#000000] capitalize">{type}</span>
               </label>
             ))}
           </div>
         </div>
         <div className="grid grid-cols-2 gap-6">
           <div className="flex flex-col">
-            <label className="font-medium mb-1 text-[#000000]">
+            <label className="mb-1 font-medium text-[#000000]">
               Start Date:
             </label>
             <div
-              className="border border-[#CCCCCC] rounded-[4px] px-3 py-2 cursor-pointer focus-within:ring-2 focus-within:ring-[#00888F] transition"
+              className="cursor-pointer rounded-[4px] border border-[#CCCCCC] px-3 py-2 transition focus-within:ring-2 focus-within:ring-[#00888F]"
               onClick={() => startDateRef.current?.showPicker()}
             >
               <input
@@ -129,15 +128,15 @@ export default function CreateRequestForLeave() {
                     setDateLeaveEnd(newStart);
                   }
                 }}
-                className="w-full outline-none text-[#000000] cursor-pointer bg-transparent"
+                className="w-full cursor-pointer bg-transparent text-[#000000] outline-none"
               />
             </div>
           </div>
 
           <div className="flex flex-col">
-            <label className="font-medium mb-1 text-[#000000]">End Date:</label>
+            <label className="mb-1 font-medium text-[#000000]">End Date:</label>
             <div
-              className="border border-[#CCCCCC] rounded-[4px] px-3 py-2 cursor-pointer focus-within:ring-2 focus-within:ring-[#00888F] transition"
+              className="cursor-pointer rounded-[4px] border border-[#CCCCCC] px-3 py-2 transition focus-within:ring-2 focus-within:ring-[#00888F]"
               onClick={() => endDateRef.current?.showPicker()}
             >
               <input
@@ -150,31 +149,31 @@ export default function CreateRequestForLeave() {
                   if (!value) return;
                   setDateLeaveEnd(new Date(value));
                 }}
-                className="w-full outline-none text-[#000000] cursor-pointer bg-transparent"
+                className="w-full cursor-pointer bg-transparent text-[#000000] outline-none"
               />
             </div>
           </div>
         </div>
         <div className="flex flex-col">
-          <label className="font-medium mb-1 text-[#000000]">Reasoning:</label>
+          <label className="mb-1 font-medium text-[#000000]">Reasoning:</label>
           <textarea
             value={reasoning}
             onChange={(e) => setReasoning(e.target.value)}
-            className="border border-[#CCCCCC] rounded-[4px] px-3 py-2 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-[#00888F]"
+            className="min-h-[120px] rounded-[4px] border border-[#CCCCCC] px-3 py-2 focus:ring-2 focus:ring-[#00888F] focus:outline-none"
           />
         </div>
         <div className="flex flex-col">
           {error && (
-            <p className="text-[#FF3333] text-sm text-center font-medium mb-3">
+            <p className="mb-3 text-center text-sm font-medium text-[#FF3333]">
               {error}
             </p>
           )}
           <button
             type="submit"
             disabled={createRequest.isPending}
-            className={`w-full py-3 rounded-[4px] text-white font-semibold transition-colors ${
+            className={`w-full rounded-[4px] py-3 font-semibold text-white transition-colors ${
               createRequest.isPending
-                ? "bg-[#CCCCCC] cursor-not-allowed"
+                ? "cursor-not-allowed bg-[#CCCCCC]"
                 : "bg-[#00888F] hover:bg-[#00767C]"
             }`}
           >

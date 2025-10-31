@@ -84,7 +84,7 @@ export default function EditRequestForLeave() {
     }
   }
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading || loadingPerms) return <p>Loading...</p>;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F9F9F9] p-6">
