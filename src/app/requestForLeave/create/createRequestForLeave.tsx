@@ -26,7 +26,7 @@ export default function CreateRequestForLeave() {
   
   const today = formatDate(new Date());
 
-  if (!isLoading && !hasPermission("leave_request.update")) {
+  if (!isLoading && !hasPermission("LeaveRequest.update")) {
     return(
         <ReturnView/>     
     );

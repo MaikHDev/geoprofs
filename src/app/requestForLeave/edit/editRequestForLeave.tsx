@@ -42,7 +42,7 @@ export default function EditRequestForLeave() {
     }
   }, [request]);
 
-  if (!loadingPerms && !hasPermission("leave_request.update")) {
+  if (!loadingPerms && !hasPermission("LeaveRequest.update")) {
     return <ReturnView />;
   }
 

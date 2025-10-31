@@ -1,79 +1,87 @@
 import z from "zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { ReasonsForLeave, requestForLeave, } from "~/server/db/schema";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  requirePermission,
+} from "../trpc";
+import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
 import { db } from "~/server/db";
 import { eq } from "drizzle-orm";
 
-
 export const requestForLeaveRouter = createTRPCRouter({
     create: protectedProcedure
+    .use(requirePermission("LeaveRequest.create"))
     .input(
-        z.object({  
-            subject: z.string(),
-            reasonOfLeave: z.enum(ReasonsForLeave.enumValues),
-            dateLeaveStart: z.date(),
-            dateLeaveEnd: z.date(),
-            reasoning: z.string(),
-        })
+      z.object({
+        subject: z.string(),
+        reasonOfLeave: z.enum(ReasonsForLeave.enumValues),
+        dateLeaveStart: z.date(),
+        dateLeaveEnd: z.date(),
+        reasoning: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-        const newRequest = await db
+      if (!ctx.user) return;
+
+      const newRequest = await db
         .insert(requestForLeave)
         .values({
-            userId: ctx.session.user.id,
-            subject: input.subject,
-            reasonOfLeave: input.reasonOfLeave,
-            dateLeaveStart: input.dateLeaveStart,
-            dateLeaveEnd: input.dateLeaveEnd,
-            reasoning: input.reasoning,
-            feedback: "",
-            reviewer: ctx.session.user.id,
+          userId: ctx.session.user.id,
+          subject: input.subject,
+          reasonOfLeave: input.reasonOfLeave,
+          dateLeaveStart: input.dateLeaveStart,
+          dateLeaveEnd: input.dateLeaveEnd,
+          reasoning: input.reasoning,
+          feedback: "",
+          reviewer: ctx.session.user.id,
         })
         .returning();
 
-        return newRequest[0];
-    }
-
-    ),
-    update: protectedProcedure
+      return newRequest[0];
+    }),
+  update: protectedProcedure
+    .use(requirePermission("LeaveRequest.update"))
     .input(
-        z.object({ 
-            id: z.number(), 
-            subject: z.string(),
-            reasonOfLeave: z.enum(ReasonsForLeave.enumValues),
-            dateLeaveStart: z.date(),
-            dateLeaveEnd: z.date(),
-            reasoning: z.string(),
-        })
+      z.object({
+        id: z.number(),
+        subject: z.string(),
+        reasonOfLeave: z.enum(ReasonsForLeave.enumValues),
+        dateLeaveStart: z.date(),
+        dateLeaveEnd: z.date(),
+        reasoning: z.string(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
-        const newRequest = await db
+      if (!ctx.user) return;
+
+      const newRequest = await db
         .update(requestForLeave)
         .set({
-            userId: ctx.session.user.id,
-            subject: input.subject,
-            reasonOfLeave: input.reasonOfLeave,
-            dateLeaveStart: input.dateLeaveStart,
-            dateLeaveEnd: input.dateLeaveEnd,
-            reasoning: input.reasoning,
-            feedback: "",
-            reviewer: ctx.session.user.id,
+          userId: ctx.session.user.id,
+          subject: input.subject,
+          reasonOfLeave: input.reasonOfLeave,
+          dateLeaveStart: input.dateLeaveStart,
+          dateLeaveEnd: input.dateLeaveEnd,
+          reasoning: input.reasoning,
+          feedback: "",
+          reviewer: ctx.session.user.id,
         })
         .where(eq(requestForLeave.id, input.id))
         .returning();
 
-        return newRequest[0];
-    }
-
-    ),
-    getById: protectedProcedure
+      return newRequest[0];
+    }),
+  getById: protectedProcedure
+    .use(requirePermission("LeaveRequest.read"))
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
-    const request = await db
+      if (!ctx.user) return;
+
+      const request = await db
         .select()
         .from(requestForLeave)
         .where(eq(requestForLeave.id, input.id))
         .limit(1);
-    return request[0];
+      return request[0];
     }),
-})
+});
