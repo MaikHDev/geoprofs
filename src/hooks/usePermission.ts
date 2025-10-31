@@ -3,9 +3,12 @@
 import { api } from "~/trpc/react";
 import type { PermissionKey } from "~/shared/permissions";
 
-export function usePermission(p0: string) {
-  const { data } = api.auth.getMyPermissions.useQuery();
+export function usePermission() {
+  const { data, isLoading } = api.auth.getMyPermissions.useQuery();
   const perms = data ?? [];
 
-  return (key: PermissionKey): boolean => perms.includes(key);
+  return {
+    hasPermission: (key: PermissionKey): boolean => perms.includes(key),
+    isLoading
+  };
 }

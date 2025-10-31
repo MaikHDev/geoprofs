@@ -7,7 +7,7 @@ import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 
 export default function CreateRequestForLeave() {
-  const hasPermission = usePermission("leave_request.create");
+  const {hasPermission, isLoading} = usePermission();
   
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<
@@ -26,7 +26,7 @@ export default function CreateRequestForLeave() {
   
   const today = formatDate(new Date());
 
-  if (!hasPermission("leave_request.create")) {
+  if (!isLoading && !hasPermission("leave_request.update")) {
     return(
         <ReturnView/>     
     );

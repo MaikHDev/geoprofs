@@ -1,11 +1,13 @@
-"use client"
-
-import { useParams } from "next/navigation";
 import EditRequestForLeave from "../editRequestForLeave";
+import { getUserSession } from "utils/auth-actions";
 
-export default function EditLeaveRequestPage() {
-  const params = useParams();
-  const requestId = Number(params.id);
+export default async function EditLeaveRequestPage() {
 
-  return <EditRequestForLeave requestId={requestId}/>;
+  const session = await getUserSession();
+
+  return(
+    <>
+   { session && (<EditRequestForLeave/>)}
+    </>
+  ) 
 }

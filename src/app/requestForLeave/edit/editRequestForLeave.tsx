@@ -5,10 +5,14 @@ import { api } from "~/trpc/react";
 import { ToastContainer, toast } from "react-toastify";
 import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
+import { useParams } from "next/navigation";
 
-export default function EditRequestForLeave({ requestId }: { requestId: number }) {
-  const hasPermission = usePermission("leave_request.create");
-    
+export default function EditRequestForLeave() {
+  const params = useParams();
+  const requestId = Number(params.id);
+
+  const { hasPermission, isLoading: loadingPerms } = usePermission();
+
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<
     "vacation" | "personal" | "medical" | "extra"
@@ -38,11 +42,9 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
     }
   }, [request]);
 
-  if (!hasPermission("leave_request.update")) {
-      return(
-          <ReturnView/>      
-      );
-    }
+  if (!loadingPerms && !hasPermission("leave_request.update")) {
+    return <ReturnView />;
+  }
 
   async function handleEditRequest(e: React.FormEvent) {
     e.preventDefault();
@@ -85,32 +87,34 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
   if (isLoading) return <p>Loading...</p>;
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-[#F9F9F9] p-6">
+    <div className="flex min-h-screen items-center justify-center bg-[#F9F9F9] p-6">
       <form
         onSubmit={handleEditRequest}
-        className="bg-white shadow-md p-8 w-full max-w-4xl space-y-6 border border-[#CCCCCC] rounded-[4px]"
+        className="w-full max-w-4xl space-y-6 rounded-[4px] border border-[#CCCCCC] bg-white p-8 shadow-md"
       >
-        <h1 className="text-2xl font-semibold text-[#000000] text-center">
+        <h1 className="text-center text-2xl font-semibold text-[#000000]">
           Edit Leave Request
         </h1>
 
         <div>
-          <p className="font-medium mb-2 text-[#000000]">Reason for Leave:</p>
+          <p className="mb-2 font-medium text-[#000000]">Reason for Leave:</p>
           <div className="flex flex-wrap gap-4">
             {["vacation", "personal", "medical", "extra"].map((type) => (
               <label
                 key={type}
-                className="flex items-center space-x-2 p-2 px-3 border border-[#CCCCCC] rounded-[4px] hover:border-[#00888F] cursor-pointer"
+                className="flex cursor-pointer items-center space-x-2 rounded-[4px] border border-[#CCCCCC] p-2 px-3 hover:border-[#00888F]"
               >
                 <input
                   type="radio"
                   name="reasonOfLeave"
                   value={type}
                   checked={reasonOfLeave === type}
-                  onChange={() => setReasonOfLeave(type as typeof reasonOfLeave)}
+                  onChange={() =>
+                    setReasonOfLeave(type as typeof reasonOfLeave)
+                  }
                   className="accent-[#00888F]"
                 />
-                <span className="capitalize text-[#000000]">{type}</span>
+                <span className="text-[#000000] capitalize">{type}</span>
               </label>
             ))}
           </div>
@@ -118,9 +122,11 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
 
         <div className="grid grid-cols-2 gap-6">
           <div className="flex flex-col">
-            <label className="font-medium mb-1 text-[#000000]">Start Date:</label>
+            <label className="mb-1 font-medium text-[#000000]">
+              Start Date:
+            </label>
             <div
-              className="border border-[#CCCCCC] rounded-[4px] px-3 py-2 cursor-pointer focus-within:ring-2 focus-within:ring-[#00888F] transition"
+              className="cursor-pointer rounded-[4px] border border-[#CCCCCC] px-3 py-2 transition focus-within:ring-2 focus-within:ring-[#00888F]"
               onClick={() => startDateRef.current?.showPicker()}
             >
               <input
@@ -138,15 +144,15 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
                     setDateLeaveEnd(newStart);
                   }
                 }}
-                className="w-full outline-none text-[#000000] cursor-pointer bg-transparent"
+                className="w-full cursor-pointer bg-transparent text-[#000000] outline-none"
               />
             </div>
           </div>
 
           <div className="flex flex-col">
-            <label className="font-medium mb-1 text-[#000000]">End Date:</label>
+            <label className="mb-1 font-medium text-[#000000]">End Date:</label>
             <div
-              className="border border-[#CCCCCC] rounded-[4px] px-3 py-2 cursor-pointer focus-within:ring-2 focus-within:ring-[#00888F] transition"
+              className="cursor-pointer rounded-[4px] border border-[#CCCCCC] px-3 py-2 transition focus-within:ring-2 focus-within:ring-[#00888F]"
               onClick={() => endDateRef.current?.showPicker()}
             >
               <input
@@ -159,23 +165,23 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
                   if (!value) return;
                   setDateLeaveEnd(new Date(value));
                 }}
-                className="w-full outline-none text-[#000000] cursor-pointer bg-transparent"
+                className="w-full cursor-pointer bg-transparent text-[#000000] outline-none"
               />
             </div>
           </div>
         </div>
 
         <div className="flex flex-col">
-          <label className="font-medium mb-1 text-[#000000]">Reasoning:</label>
+          <label className="mb-1 font-medium text-[#000000]">Reasoning:</label>
           <textarea
             value={reasoning}
             onChange={(e) => setReasoning(e.target.value)}
-            className="border border-[#CCCCCC] rounded-[4px] px-3 py-2 min-h-[120px] focus:outline-none focus:ring-2 focus:ring-[#00888F]"
+            className="min-h-[120px] rounded-[4px] border border-[#CCCCCC] px-3 py-2 focus:ring-2 focus:ring-[#00888F] focus:outline-none"
           />
         </div>
 
         {error && (
-          <p className="text-[#FF3333] text-sm text-center font-medium mb-3">
+          <p className="mb-3 text-center text-sm font-medium text-[#FF3333]">
             {error}
           </p>
         )}
@@ -183,9 +189,9 @@ export default function EditRequestForLeave({ requestId }: { requestId: number }
         <button
           type="submit"
           disabled={updateRequest.isPending}
-          className={`w-full py-3 rounded-[4px] text-white font-semibold transition-colors ${
+          className={`w-full rounded-[4px] py-3 font-semibold text-white transition-colors ${
             updateRequest.isPending
-              ? "bg-[#CCCCCC] cursor-not-allowed"
+              ? "cursor-not-allowed bg-[#CCCCCC]"
               : "bg-[#00888F] hover:bg-[#00767C]"
           }`}
         >
