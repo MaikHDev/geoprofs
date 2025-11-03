@@ -1,17 +1,15 @@
 import { roles } from "~/server/db/schema";
 import { db } from "~/server/db";
+import type {InferInsertModel} from "drizzle-orm";
 
-interface Role {
-  id: number;
-  roleName: string;
-  description: string;
-}
+type Role = InferInsertModel<typeof roles>;
+
 
 export async function seedRoles() {
   const predefinedRoles: Role[] = [
-    { id: 1, roleName: "Admin", description: "test" },
-    { id: 2, roleName: "Werkgever", description: "test" },
-    { id: 3, roleName: "Werknemer", description: "test" },
+    { roleName: "Admin", description: "test" },
+    { roleName: "Werkgever", description: "test" },
+    { roleName: "Werknemer", description: "test" },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where
