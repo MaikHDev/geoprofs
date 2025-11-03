@@ -1,4 +1,5 @@
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { leaveRequestsRouter } from "~/server/api/routers/leaveRequest";
 import {auditTrailRouter} from "~/server/api/routers/audit-trail";
 import { authRouter } from "~/server/api/routers/auth";
 
@@ -10,6 +11,7 @@ import { authRouter } from "~/server/api/routers/auth";
 export const appRouter = createTRPCRouter({
   auditTrail: auditTrailRouter,
   auth: authRouter,
+  leaveRequest: leaveRequestsRouter,
 });
 
 // export type definition of API
