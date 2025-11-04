@@ -6,7 +6,6 @@ import { ToastContainer, toast } from "react-toastify";
 import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 import { useParams } from "next/navigation";
-import { success } from "better-auth";
 
 export default function EditRequestForLeave() {
   const params = useParams();
@@ -30,8 +29,8 @@ export default function EditRequestForLeave() {
     id: requestId,
   });
   const updateRequest = api.requestForLeave.update.useMutation({
-    onSuccess: () => {
-      utils.requestForLeave.invalidate();
+    onSuccess: async () => {
+      await utils.requestForLeave.invalidate();
     },
   });
 
