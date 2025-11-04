@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 import { useParams } from "next/navigation";
+import { success } from "better-auth";
 
 export default function EditRequestForLeave() {
   const params = useParams();
@@ -21,10 +22,18 @@ export default function EditRequestForLeave() {
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
 
+  const [disabledForm, setDisabledForm] = useState(true);
+
+  const utils = api.useUtils();
+
   const { data: request, isLoading } = api.requestForLeave.getById.useQuery({
     id: requestId,
   });
-  const updateRequest = api.requestForLeave.update.useMutation();
+  const updateRequest = api.requestForLeave.update.useMutation({
+    onSuccess: () => {
+      utils.requestForLeave.invalidate();
+    },
+  });
 
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
@@ -34,13 +43,26 @@ export default function EditRequestForLeave() {
   const today = formatDate(new Date());
 
   useEffect(() => {
-    if (request) {
+    if (request && !loadingPerms && hasPermission("LeaveRequest.update")) {
       setReasonOfLeave(request.reasonOfLeave);
       setDateLeaveStart(new Date(request.dateLeaveStart));
       setDateLeaveEnd(new Date(request.dateLeaveEnd));
       setReasoning(request.reasoning);
     }
   }, [request]);
+
+  useEffect(() => {
+    if (!request || loadingPerms) return;
+    if (!hasPermission("LeaveRequest.update")) return;
+
+    const isSame =
+      dateLeaveStart.getDate() === new Date(request.dateLeaveStart).getDate() &&
+      dateLeaveEnd.getDate() === new Date(request.dateLeaveEnd).getDate() &&
+      reasonOfLeave === request.reasonOfLeave &&
+      reasoning === request.reasoning;
+
+    setDisabledForm(isSame);
+  }, [dateLeaveStart, dateLeaveEnd, reasonOfLeave, reasoning]);
 
   if (!loadingPerms && !hasPermission("LeaveRequest.update")) {
     return <ReturnView />;
@@ -76,6 +98,7 @@ export default function EditRequestForLeave() {
       });
 
       toast.success("Leave request updated successfully!");
+      setDisabledForm(true);
     } catch (err) {
       if (err && err instanceof Error) {
         setError(err.message ?? "Unknown error");
@@ -188,9 +211,9 @@ export default function EditRequestForLeave() {
 
         <button
           type="submit"
-          disabled={updateRequest.isPending}
+          disabled={disabledForm}
           className={`w-full rounded-[4px] py-3 font-semibold text-white transition-colors ${
-            updateRequest.isPending
+            updateRequest.isPending || disabledForm
               ? "cursor-not-allowed bg-[#CCCCCC]"
               : "bg-[#00888F] hover:bg-[#00767C]"
           }`}
