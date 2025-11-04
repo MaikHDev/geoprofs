@@ -5,7 +5,6 @@ import {
   requirePermission,
 } from "../trpc";
 import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
-import { db } from "~/server/db";
 import { eq } from "drizzle-orm";
 
 export const requestForLeaveRouter = createTRPCRouter({
@@ -23,7 +22,7 @@ export const requestForLeaveRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const newRequest = await db
+      const newRequest = await ctx.db
         .insert(requestForLeave)
         .values({
           userId: ctx.session.user.id,
@@ -39,6 +38,7 @@ export const requestForLeaveRouter = createTRPCRouter({
 
       return newRequest[0];
     }),
+
   update: protectedProcedure
     .use(requirePermission("LeaveRequest.update"))
     .input(
@@ -54,7 +54,7 @@ export const requestForLeaveRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const newRequest = await db
+      const newRequest = await ctx.db
         .update(requestForLeave)
         .set({
           userId: ctx.session.user.id,
@@ -71,13 +71,14 @@ export const requestForLeaveRouter = createTRPCRouter({
 
       return newRequest[0];
     }),
+
   getById: protectedProcedure
     .use(requirePermission("LeaveRequest.read"))
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const request = await db
+      const request = await ctx.db
         .select()
         .from(requestForLeave)
         .where(eq(requestForLeave.id, input.id))
