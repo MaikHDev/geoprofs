@@ -4,7 +4,7 @@ import {
   requirePermission,
 } from "../trpc";
 import { requestForLeave, user } from "~/server/db/schema";
-import { eq, lt, lte, not, or } from "drizzle-orm";
+import { eq, lte, not } from "drizzle-orm";
 import { z } from "zod";
 
 export const leaveRequestsRouter = createTRPCRouter({
