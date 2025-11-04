@@ -1,7 +1,7 @@
 "use client";
 
 import { api } from "~/trpc/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function PendingLeaveRequestsPage() {
@@ -19,6 +19,7 @@ export default function PendingLeaveRequestsPage() {
   const [checkedLeaveRequests, setCheckedLeaveRequests] = useState<number[]>(
     [],
   );
+  const [isAllChecked, setIsAllChecked] = useState(false);
 
   const handleOnChange = (id: number) => {
     setCheckedLeaveRequests((prev) => {
@@ -28,6 +29,25 @@ export default function PendingLeaveRequestsPage() {
         return [...prev, id];
       }
     });
+  };
+
+  useEffect(() => {
+    if (!data) return;
+    if (checkedLeaveRequests.length === data.length && data.length > 0) {
+      setIsAllChecked(true);
+    } else {
+      setIsAllChecked(false);
+    }
+  }, [checkedLeaveRequests, data]);
+
+  const handleSelectAll = () => {
+    if (!data) return;
+    if (isAllChecked) {
+      setCheckedLeaveRequests([]);
+    } else {
+      setCheckedLeaveRequests(data.map((req) => req.id));
+    }
+    setIsAllChecked(!isAllChecked);
   };
 
   return (
@@ -41,7 +61,16 @@ export default function PendingLeaveRequestsPage() {
               <th className="w-12 px-4 py-3">
                 <input
                   type="checkbox"
+                  checked={isAllChecked}
+                  onChange={handleSelectAll}
                   className="text-bg-[#00888F] h-4 w-4 rounded border-gray-300"
+                  ref={(el) => {
+                    if (el) {
+                      el.indeterminate =
+                        checkedLeaveRequests.length > 0 &&
+                        checkedLeaveRequests.length < (data?.length ?? 0);
+                    }
+                  }}
                 />
               </th>
               <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
