@@ -15,6 +15,7 @@ export const leaveRequestsRouter = createTRPCRouter({
         subject: requestForLeave.subject,
         reason: requestForLeave.reasonOfLeave,
         status: requestForLeave.status,
+        reasoning: requestForLeave.reasoning,
         start: requestForLeave.dateLeaveStart,
         end: requestForLeave.dateLeaveEnd,
         createdAt: requestForLeave.createdAt,

@@ -1,12 +1,14 @@
 "use client";
 
 import { api } from "~/trpc/react";
-import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function PendingLeaveRequestsPage() {
   const utils = api.useUtils();
   const { data } = api.leaveRequest.listPendingRequests.useQuery();
+  const router = useRouter();
+
   const updateStatus = api.leaveRequest.updateMultipleStatus.useMutation({
     onSuccess: async () => {
       await utils.leaveRequest.listPendingRequests.invalidate();
@@ -29,40 +31,96 @@ export default function PendingLeaveRequestsPage() {
   };
 
   return (
-    <div>
-      <ul>
-        {data?.map((request) => (
-          <li key={request.id}>
-            <Link href={`/leaveRequest/${request.id}`}>
-              <span>{request.subject}</span>
-              <span>{request.reason}</span>
-              <span>({request.requesterName})</span>
-            </Link>
-            <input
-              type="checkbox"
-              value={request.id}
-              checked={checkedLeaveRequests.includes(request.id)}
-              onChange={() => handleOnChange(request.id)}
-            />
-          </li>
-        ))}
-      </ul>
+    <div className="p-8">
+      <h2 className="mb-6 text-3xl font-semibold">Leave requests</h2>
 
-      <button
-        onClick={() =>
-          updateStatus.mutate({ ids: checkedLeaveRequests, status: "approved" })
-        }
-      >
-        Approve Selected
-      </button>
+      <div className="rounded-lg border border-gray-200 shadow-sm">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="w-12 px-4 py-3">
+                <input
+                  type="checkbox"
+                  className="text-bg-[#00888F] h-4 w-4 rounded border-gray-300"
+                />
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                Name
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                Reason
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                Start date
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                End date
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                Reasoning
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 bg-white">
+            {data?.map((request) => (
+              <tr
+                key={request.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => router.push(`/leaveRequest/${request.id}`)}
+              >
+                <td className="px-4 py-4">
+                  <input
+                    onClick={(e) => e.stopPropagation()}
+                    type="checkbox"
+                    value={request.id}
+                    checked={checkedLeaveRequests.includes(request.id)}
+                    onChange={() => handleOnChange(request.id)}
+                    className="text-bg-[#00888F] h-4 w-4 rounded border-gray-300"
+                  />
+                </td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {request.requesterName}
+                </td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {request.reason}
+                </td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {new Date(request.start).toLocaleDateString()}
+                </td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {new Date(request.end).toLocaleDateString()}
+                </td>
+                <td className="max-w-xs truncate border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {request.reasoning}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      <button
-        onClick={() =>
-          updateStatus.mutate({ ids: checkedLeaveRequests, status: "denied" })
-        }
-      >
-        Deny Selected
-      </button>
+      <div className="mt-6 flex gap-4">
+        <button
+          onClick={() =>
+            updateStatus.mutate({
+              ids: checkedLeaveRequests,
+              status: "approved",
+            })
+          }
+          className="rounded-md bg-[#00888F] px-6 py-2 text-white transition hover:bg-[#007379]"
+        >
+          Approve selected
+        </button>
+
+        <button
+          onClick={() =>
+            updateStatus.mutate({ ids: checkedLeaveRequests, status: "denied" })
+          }
+          className="rounded-md border border-gray-300 px-6 py-2 text-gray-700 transition hover:bg-gray-50"
+        >
+          Deny selected
+        </button>
+      </div>
     </div>
   );
 }
