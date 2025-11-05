@@ -6,10 +6,17 @@ import { useRouter } from "next/navigation";
 
 export default function PendingLeaveRequestsPage() {
   const utils = api.useUtils();
-  const { data } = api.leaveRequest.listPendingRequests.useQuery();
+  const { data, isLoading } = api.leaveRequest.listPendingRequests.useQuery();
   const router = useRouter();
 
-  const updateStatus = api.leaveRequest.updateMultipleStatus.useMutation({
+  const approveMutation = api.leaveRequest.updateMultipleStatus.useMutation({
+    onSuccess: async () => {
+      await utils.leaveRequest.listPendingRequests.invalidate();
+      setCheckedLeaveRequests([]);
+    },
+  });
+
+  const denyMutation = api.leaveRequest.updateMultipleStatus.useMutation({
     onSuccess: async () => {
       await utils.leaveRequest.listPendingRequests.invalidate();
       setCheckedLeaveRequests([]);
@@ -50,6 +57,19 @@ export default function PendingLeaveRequestsPage() {
     setIsAllChecked(!isAllChecked);
   };
 
+  if (isLoading)
+    return (
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        Loading...
+      </div>
+    );
+  if (!data)
+    return (
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        Request not found.
+      </div>
+    );
+
   return (
     <div className="p-8">
       <h2 className="mb-6 text-3xl font-semibold">Leave requests</h2>
@@ -63,7 +83,7 @@ export default function PendingLeaveRequestsPage() {
                   type="checkbox"
                   checked={isAllChecked}
                   onChange={handleSelectAll}
-                  className="text-bg-[#00888F] h-4 w-4 rounded border-gray-300"
+                  className="text-bg-[#00888F] h-4 w-4 cursor-pointer rounded border-gray-300"
                   ref={(el) => {
                     if (el) {
                       el.indeterminate =
@@ -104,7 +124,7 @@ export default function PendingLeaveRequestsPage() {
                     value={request.id}
                     checked={checkedLeaveRequests.includes(request.id)}
                     onChange={() => handleOnChange(request.id)}
-                    className="text-bg-[#00888F] h-4 w-4 rounded border-gray-300"
+                    className="text-bg-[#00888F] h-4 w-4 cursor-pointer rounded border-gray-300"
                   />
                 </td>
                 <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
@@ -131,23 +151,23 @@ export default function PendingLeaveRequestsPage() {
       <div className="mt-6 flex gap-4">
         <button
           onClick={() =>
-            updateStatus.mutate({
+            approveMutation.mutate({
               ids: checkedLeaveRequests,
               status: "approved",
             })
           }
-          className="rounded-md bg-[#00888F] px-6 py-2 text-white transition hover:bg-[#007379]"
+          className="cursor-pointer rounded-md bg-[#00888F] px-6 py-2 text-white transition hover:bg-[#007379]"
         >
-          Approve selected
+          {approveMutation.isPending ? "Saving..." : "Approve selected"}
         </button>
 
         <button
           onClick={() =>
-            updateStatus.mutate({ ids: checkedLeaveRequests, status: "denied" })
+            denyMutation.mutate({ ids: checkedLeaveRequests, status: "denied" })
           }
-          className="rounded-md border border-gray-300 px-6 py-2 text-gray-700 transition hover:bg-gray-50"
+          className="cursor-pointer rounded-md border border-gray-300 px-6 py-2 text-gray-700 transition hover:bg-gray-50"
         >
-          Deny selected
+          {denyMutation.isPending ? "Saving..." : "Deny selected"}
         </button>
       </div>
     </div>
