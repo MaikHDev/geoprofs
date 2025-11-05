@@ -9,7 +9,7 @@ import { z } from "zod";
 
 export const leaveRequestsRouter = createTRPCRouter({
   listPendingRequests: protectedProcedure
-    .use(requirePermission("leaveRequest.read"))
+    .use(requirePermission("LeaveRequest.read"))
     .query(async ({ ctx }) => {
       return ctx.db
         .select({
@@ -30,7 +30,7 @@ export const leaveRequestsRouter = createTRPCRouter({
     }),
 
   getById: protectedProcedure
-    .use(requirePermission("leaveRequest.read"))
+    .use(requirePermission("LeaveRequest.read"))
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       const [req] = await ctx.db
@@ -54,7 +54,7 @@ export const leaveRequestsRouter = createTRPCRouter({
     }),
 
   updateStatus: protectedProcedure
-    .use(requirePermission("leaveRequest.update"))
+    .use(requirePermission("LeaveRequest.update"))
     .input(
       z.object({
         id: z.number(),
@@ -83,7 +83,7 @@ export const leaveRequestsRouter = createTRPCRouter({
     }),
 
   viewStatus: protectedProcedure
-    .use(requirePermission("leaveRequest.read"))
+    .use(requirePermission("LeaveRequest.read"))
     .query(({ ctx }) => {
       const date = new Date();
       return ctx.db.query.requestForLeave.findMany({
@@ -95,7 +95,7 @@ export const leaveRequestsRouter = createTRPCRouter({
           reasonOfLeave: true,
           createdAt: true,
         },
-        where: (r) => not(lte(r.dateLeaveStart, date)),
+        where: (r) => not(lte(r.dateLeaveStart, date)), 
       });
     }),
 });
