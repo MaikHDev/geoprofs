@@ -21,7 +21,7 @@ export function LatestPost() {
 
     return (
         <div className="w-full max-w-xs">
-            Connected: {isConnected ? "TRUE" : "FALSE"}
+            {/*Connected: {isConnected.valueOf()}*/}
             {latestPost ? (
                 <p className="truncate">Your most recent post: {latestPost.name}</p>
             ) : (

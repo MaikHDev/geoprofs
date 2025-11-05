@@ -1,8 +1,9 @@
-import { createAuthClient } from "better-auth/client";
+import { createAuthClient } from "better-auth/react";
 import { nextCookies } from "better-auth/next-js";
-import {env} from "~/env";
 
 export const authClient = createAuthClient({
-  baseURL: `${env.NEXT_PUBLIC_VERCEL_URL}/api/auth`,
+  basePath: '/api/auth',
   plugins: [nextCookies()],
 });
+
+export const { useSession, signIn, signOut, signUp } = authClient;
