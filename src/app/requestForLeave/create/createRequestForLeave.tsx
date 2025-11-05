@@ -102,7 +102,7 @@ export default function CreateRequestForLeave() {
                   value={type}
                   checked={reasonOfLeave === type}
                   onChange={() =>
-                    setReasonOfLeave(type as typeof reasonOfLeave)
+                    setReasonOfLeave(type)
                   }
                   className="accent-[#00888F]"
                 />
