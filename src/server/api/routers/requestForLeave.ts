@@ -22,6 +22,12 @@ export const requestForLeaveRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
+      const date = new Date();
+
+      if(input.dateLeaveStart.getDay() < date.getDay() || input.dateLeaveEnd.getDay() < date.getDay()) {
+        return;
+      }
+
       const newRequest = await ctx.db
         .insert(requestForLeave)
         .values({
@@ -53,6 +59,11 @@ export const requestForLeaveRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
+      const date = new Date();
+
+       if(input.dateLeaveStart.getDay() < date.getDay() || input.dateLeaveEnd.getDay() < date.getDay()) {
+        return;
+      }
 
       const newRequest = await ctx.db
         .update(requestForLeave)
