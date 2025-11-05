@@ -6,13 +6,20 @@ import { api } from "~/trpc/react";
 import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 
+export const reasonOfLeaveValues = [
+  "vacation",
+  "personal",
+  "medical",
+  "extra"
+] as const;
+
+export type ReasonOfLeave = (typeof reasonOfLeaveValues)[number];
+
 export default function CreateRequestForLeave() {
   const { hasPermission, isLoading } = usePermission();
 
   const [error, setError] = useState<string | null>(null);
-  const [reasonOfLeave, setReasonOfLeave] = useState<
-    "vacation" | "personal" | "medical" | "extra"
-  >("vacation");
+  const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("vacation");
   const [dateLeaveStart, setDateLeaveStart] = useState<Date>(new Date());
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
@@ -84,7 +91,7 @@ export default function CreateRequestForLeave() {
         <div>
           <p className="mb-2 font-medium text-[#000000]">Reason for Leave:</p>
           <div className="flex flex-wrap gap-4">
-            {["vacation", "personal", "medical", "extra"].map((type) => (
+            {reasonOfLeaveValues.map((type) => (
               <label
                 key={type}
                 className="flex cursor-pointer items-center space-x-2 rounded-[4px] border border-[#CCCCCC] p-2 px-3 hover:border-[#00888F]"

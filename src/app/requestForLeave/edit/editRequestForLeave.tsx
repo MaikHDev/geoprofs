@@ -6,6 +6,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 import { useParams } from "next/navigation";
+import { reasonOfLeaveValues, type ReasonOfLeave } from "../create/createRequestForLeave";
 
 export default function EditRequestForLeave() {
   const params = useParams();
@@ -14,9 +15,7 @@ export default function EditRequestForLeave() {
   const { hasPermission, isLoading: loadingPerms } = usePermission();
 
   const [error, setError] = useState<string | null>(null);
-  const [reasonOfLeave, setReasonOfLeave] = useState<
-    "vacation" | "personal" | "medical" | "extra"
-  >("vacation");
+  const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("vacation");
   const [dateLeaveStart, setDateLeaveStart] = useState<Date>(new Date());
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
@@ -121,7 +120,7 @@ export default function EditRequestForLeave() {
         <div>
           <p className="mb-2 font-medium text-[#000000]">Reason for Leave:</p>
           <div className="flex flex-wrap gap-4">
-            {["vacation", "personal", "medical", "extra"].map((type) => (
+            {reasonOfLeaveValues.map((type) => (
               <label
                 key={type}
                 className="flex cursor-pointer items-center space-x-2 rounded-[4px] border border-[#CCCCCC] p-2 px-3 hover:border-[#00888F]"
