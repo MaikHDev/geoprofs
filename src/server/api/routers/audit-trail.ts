@@ -3,20 +3,24 @@ import {
   protectedProcedure,
   requirePermission,
 } from "~/server/api/trpc";
-import { LogEvents, logs } from "~/server/db/schema";
+import { LogEvents } from "~/server/db/schema";
 import { z } from "zod";
 
 export const auditTrailRouter = createTRPCRouter({
   getAllLogs: protectedProcedure
     .use(requirePermission("Log.read"))
     .query(({ ctx }) => {
-      return ctx.db
-        .selectDistinctOn([logs.logContext, logs.logEvent], {
-          logContext: logs.logContext,
-          logEvent: logs.logEvent,
-        })
-        .from(logs);
+      return ctx.db.query.logs.findMany({
+        with: {
+          user: {
+            columns: {
+              name: true
+            }
+          }
+        }
+      });
     }),
+
   getUsers: protectedProcedure
     .use(requirePermission("LogUsers.read"))
     .input(
@@ -39,6 +43,7 @@ export const auditTrailRouter = createTRPCRouter({
           and(eq(logs.logEvent, event), eq(logs.logContext, "users")),
       });
     }),
+
   getRequestsForLeave: protectedProcedure
     .use(requirePermission("LogLeaveRequests.read"))
     .input(
