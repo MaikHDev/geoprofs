@@ -1,24 +1,26 @@
-import {db} from "~/server/db";
-import {logs} from "~/server/db/schema";
-import type {InferInsertModel} from "drizzle-orm";
+"use server"
 
-type NewLog = InferInsertModel<typeof logs>;
+import { db } from "~/server/db";
+import { logs } from "~/server/db/schema";
+import type { InferInsertModel } from "drizzle-orm";
+
+export type NewLog = InferInsertModel<typeof logs>;
 
 export async function logAction({
-                             logEvent,
-                             logContext,
-                             userId,
-                             details,
-                         }: {
-    logEvent: NewLog["logEvent"];
-    logContext: NewLog["logContext"];
-    userId: NewLog["userId"];
-    details?: NewLog["details"];
+  logEvent,
+  logContext,
+  userId,
+  details,
+}: {
+  logEvent: NewLog["logEvent"];
+  logContext: NewLog["logContext"];
+  userId: NewLog["userId"];
+  details?: NewLog["details"];
 }) {
-    await db.insert(logs).values({
-        userId: userId,
-        logEvent: logEvent,
-        logContext: logContext,
-        details: details
-    });
+  await db.insert(logs).values({
+    userId: userId,
+    logEvent: logEvent,
+    logContext: logContext,
+    details: details,
+  });
 }
