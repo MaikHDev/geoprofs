@@ -5,10 +5,10 @@ import {
   requirePermission,
 } from "../trpc";
 import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 export const requestForLeaveRouter = createTRPCRouter({
-    create: protectedProcedure
+  create: protectedProcedure
     .use(requirePermission("LeaveRequest.create"))
     .input(
       z.object({
@@ -24,7 +24,10 @@ export const requestForLeaveRouter = createTRPCRouter({
 
       const date = new Date();
 
-      if(input.dateLeaveStart.getDay() < date.getDay() || input.dateLeaveEnd.getDay() < date.getDay()) {
+      if (
+        input.dateLeaveStart.getDay() < date.getDay() ||
+        input.dateLeaveEnd.getDay() < date.getDay()
+      ) {
         return;
       }
 
@@ -61,9 +64,25 @@ export const requestForLeaveRouter = createTRPCRouter({
       if (!ctx.user) return;
       const date = new Date();
 
-       if(input.dateLeaveStart.getDay() < date.getDay() || input.dateLeaveEnd.getDay() < date.getDay()) {
+      if (
+        input.dateLeaveStart.getDay() < date.getDay() ||
+        input.dateLeaveEnd.getDay() < date.getDay()
+      ) {
         return;
       }
+      const result = await ctx.db
+        .select()
+        .from(requestForLeave)
+        .where(
+          and(
+            eq(requestForLeave.id, input.id),
+            eq(requestForLeave.userId, ctx.user.id),
+            eq(requestForLeave.status, "pending"),
+          ),
+        )
+        .limit(1);
+
+      if (!result) return;
 
       const newRequest = await ctx.db
         .update(requestForLeave)
@@ -89,11 +108,18 @@ export const requestForLeaveRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const request = await ctx.db
+       const result = await ctx.db
         .select()
         .from(requestForLeave)
-        .where(eq(requestForLeave.id, input.id))
+        .where(
+          and(
+            eq(requestForLeave.id, input.id),
+            eq(requestForLeave.userId, ctx.user.id),
+            eq(requestForLeave.status, "pending"),
+          ),
+        )
         .limit(1);
-      return request[0];
+        
+        return result[0] ?? null;
     }),
 });

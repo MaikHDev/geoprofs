@@ -62,7 +62,11 @@ export default function EditRequestForLeave() {
     setDisabledForm(isSame);
   }, [dateLeaveStart, dateLeaveEnd, reasonOfLeave, reasoning]);
 
-  if (!loadingPerms && !hasPermission("LeaveRequest.update")) {
+  if(!request && !isLoading) {
+      return <h1 className="flex items-center justify-center min-h-screen text-3xl text-red-500">You are unable edit this leave request</h1>;
+  }
+
+  if (!loadingPerms && !hasPermission("LeaveRequest.update") ) {
     return <ReturnView />;
   }
 
@@ -105,7 +109,7 @@ export default function EditRequestForLeave() {
     }
   }
 
-  if (isLoading || loadingPerms) return <p>Loading...</p>;
+  if (isLoading || loadingPerms) return <p className="flex items-center justify-center min-h-screen text-3xl">Loading...</p>;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F9F9F9] p-6">
