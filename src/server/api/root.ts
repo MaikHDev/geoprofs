@@ -1,6 +1,7 @@
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { leaveRequestsRouter } from "~/server/api/routers/leaveRequest";
 import {auditTrailRouter} from "~/server/api/routers/audit-trail";
+import { requestForLeaveRouter } from "./routers/requestForLeave";
 import { authRouter } from "~/server/api/routers/auth";
 
 /**
@@ -10,6 +11,8 @@ import { authRouter } from "~/server/api/routers/auth";
  */
 export const appRouter = createTRPCRouter({
   auditTrail: auditTrailRouter,
+  post: postRouter,
+  requestForLeave: requestForLeaveRouter,
   auth: authRouter,
   leaveRequest: leaveRequestsRouter,
 });
