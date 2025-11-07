@@ -3,35 +3,23 @@
 import React, {createContext, useContext, useEffect, useState} from "react";
 import {type Socket} from "socket.io-client";
 import {getSocket} from "../../../utils/socket-client";
-import { api, type RouterOutputs } from "~/trpc/react";
+import { api } from "~/trpc/react";
 
 type SocketContextType = {
     socket: Socket;
     isConnected: boolean;
-    latestPosts: {
-        id: number;
-        name: string | null;
-        createdAt: Date;
-        updatedAt: Date | null
-    }[]
 };
 
 const SocketContext = createContext<SocketContextType | null>(null);
 
 type SocketProviderProps = {
     children: React.ReactNode;
-    initialPosts: RouterOutputs["post"]["getAllLatest"];
 };
 
-export const SocketProvider: React.FC<SocketProviderProps> = ({ children, initialPosts }) => {
+export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
     const socket = getSocket();
     const [isConnected, setIsConnected] = useState(socket.connected);
-
-    const { data: latestPosts } = api.post.getAllLatest.useQuery(undefined, {
-        initialData: initialPosts,
-        refetchOnWindowFocus: false,
-    });
 
     const utils= api.useUtils();
 
@@ -50,21 +38,15 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children, initia
         socket.on("connect", onConnect);
         socket.on("disconnect", onDisconnect);
 
-        socket.on("trpc:createpost", async (msg: string) => {
-            await utils.post.getAllLatest.invalidate();
-        });
-
-
         return () => {
             socket.off("connect", onConnect);
             socket.off("disconnect", onDisconnect);
-            socket.off("trpc:createpost");
             socket.disconnect();
         };
     }, []);
 
     return (
-        <SocketContext.Provider value={{socket, isConnected, latestPosts}}>
+        <SocketContext.Provider value={{socket, isConnected}}>
             {children}
         </SocketContext.Provider>
     );

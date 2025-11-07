@@ -2,13 +2,13 @@
 import {useState} from "react";
 import {signIn} from "../../../utils/auth-actions";
 import {useRouter} from "next/navigation";
+import {api} from "~/trpc/react";
 
 export default function SignInPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-
     const router = useRouter();
 
     async function handleSignIn(e: React.FormEvent) {
@@ -48,7 +48,8 @@ export default function SignInPage() {
                 className="w-full max-w-sm rounded-xl bg-white p-8 shadow-md"
             >
                 <h1 className="mb-6 text-center text-2xl font-bold">Sign In</h1>
-                <h2 className="mb-6 text-center text-red-500">{error}</h2>
+                <h6 className="text-center text-[8px]"><b>* Redirecting after login *</b></h6>
+                {error && <p className="mb-4 text-red-500">{error}</p>}
                 <div className="mb-4">
                     <label className="mb-1 block font-medium">Email</label>
                     <input
