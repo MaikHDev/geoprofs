@@ -325,7 +325,7 @@ export const logs = pgTable("logs", (d) => ({
   logEvent: LogEvents().notNull(),
   logContext: LogContext().notNull(),
   createdAt: d.timestamp("created_at").defaultNow().notNull(),
-  details: d.jsonb("details").$type<LogsDetails>(),
+  details: d.jsonb("details").$type<LogsDetails>().notNull(),
 }));
 
 export const logsRelations = relations(logs, ({ one }) => ({

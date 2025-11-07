@@ -11,7 +11,6 @@ import { authRouter } from "~/server/api/routers/auth";
  */
 export const appRouter = createTRPCRouter({
   auditTrail: auditTrailRouter,
-  post: postRouter,
   requestForLeave: requestForLeaveRouter,
   auth: authRouter,
   leaveRequest: leaveRequestsRouter,

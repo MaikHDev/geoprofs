@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "~/server/db";
-import { logs } from "~/server/db/schema";
+import {logs, type LogsDetails} from "~/server/db/schema";
 import type { InferInsertModel } from "drizzle-orm";
 
 export type NewLog = InferInsertModel<typeof logs>;
@@ -15,12 +15,13 @@ export async function logAction({
   logEvent: NewLog["logEvent"];
   logContext: NewLog["logContext"];
   userId: NewLog["userId"];
-  details?: NewLog["details"];
+  details: LogsDetails;
 }) {
-  await db.insert(logs).values({
+  const result = await db.insert(logs).values({
     userId: userId,
     logEvent: logEvent,
     logContext: logContext,
     details: details,
-  });
+  }).returning();
+  console.log("log insert: ", result)
 }
