@@ -5,7 +5,8 @@ import {Geist} from "next/font/google";
 
 import {TRPCReactProvider} from "~/trpc/react";
 import {SocketProvider} from "~/app/_components/socket-provider";
-import { api } from "~/trpc/server";
+import {api} from "~/trpc/server";
+import Header from "~/app/_components/header";
 
 export const metadata: Metadata = {
     title: "Create T3 App",
@@ -26,7 +27,10 @@ export default async function RootLayout({children}: Readonly<{ children: React.
         <html lang="en" className={`${geist.variable}`}>
         <body>
         <TRPCReactProvider>
-            <SocketProvider initialPosts={posts}>{children}</SocketProvider>
+            <SocketProvider initialPosts={posts}>
+                <Header/>
+                {children}
+            </SocketProvider>
         </TRPCReactProvider>
         </body>
         </html>
