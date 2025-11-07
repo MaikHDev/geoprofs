@@ -1,12 +1,12 @@
 import { createTRPCRouter, protectedProcedure, requirePermission } from "../trpc";
 import { requestForLeave, user } from "~/server/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 export const leaveRequestsRouter = createTRPCRouter({
 
   listPendingRequests: protectedProcedure
-    .use(requirePermission("leaveRequest.read"))
+    .use(requirePermission("LeaveRequest.read"))
     .query(async ({ ctx }) => {
 
     return ctx.db
@@ -15,6 +15,7 @@ export const leaveRequestsRouter = createTRPCRouter({
         subject: requestForLeave.subject,
         reason: requestForLeave.reasonOfLeave,
         status: requestForLeave.status,
+        reasoning: requestForLeave.reasoning,
         start: requestForLeave.dateLeaveStart,
         end: requestForLeave.dateLeaveEnd,
         createdAt: requestForLeave.createdAt,
@@ -28,7 +29,7 @@ export const leaveRequestsRouter = createTRPCRouter({
     }),
 
   getById: protectedProcedure
-    .use(requirePermission("leaveRequest.read"))
+    .use(requirePermission("LeaveRequest.read"))
     .input(z.object({ id: z.number() }))
     .query(async ({ctx, input }) => {
       const [req] = await ctx.db
@@ -51,8 +52,27 @@ export const leaveRequestsRouter = createTRPCRouter({
       return req ?? null;
     }),
 
+  updateMultipleStatus: protectedProcedure
+    .use(requirePermission("LeaveRequest.update"))
+    .input(z.object({
+      ids: z.array(z.number().min(1)),
+      status: z.enum(["approved", "denied"]),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(requestForLeave)
+        .set({
+          status: input.status,
+          reviewer: ctx.session.user.id,
+          updatedAt: new Date(),
+        })
+        .where(
+          inArray(requestForLeave.id, input.ids)
+        );
+    }),
+
   updateStatus: protectedProcedure
-    .use(requirePermission("leaveRequest.update"))
+    .use(requirePermission("LeaveRequest.update"))
     .input(z.object({
       id: z.number(),
       status: z.enum(["approved", "denied"]),
