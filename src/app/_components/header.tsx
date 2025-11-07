@@ -19,6 +19,7 @@ export default function Header() {
         requestForLeave: "/requestForLeave",
         leaveRequests: "/leaveRequests",
         auth: "/auth",
+        profile: "/profile"
     } as const;
 
     const navItems = [
@@ -34,6 +35,7 @@ export default function Header() {
             show: isAuthenticated && hasPermission("LeaveRequestReviewUseOthers.create"),
         },
         {label: "Login", href: urls.auth, show: !isAuthenticated},
+        {label: "Profile", href: urls.profile, show: isAuthenticated},
     ];
 
     return (

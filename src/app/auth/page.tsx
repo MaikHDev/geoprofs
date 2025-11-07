@@ -1,13 +1,13 @@
 "use server";
 
 import SignInPage from "~/app/auth/signIn";
+import {HydrateClient} from "~/trpc/server";
 
 export default async function AuthPage() {
 
-  return (
-    <>
-      <SignInPage/>
-    </>
-  );
-
+    return (
+        <HydrateClient>
+            <SignInPage/>
+        </HydrateClient>
+    );
 }
