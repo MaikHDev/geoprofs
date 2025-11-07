@@ -12,7 +12,6 @@ export const leaveRequestsRouter = createTRPCRouter({
     return ctx.db
       .select({
         id: requestForLeave.id,
-        subject: requestForLeave.subject,
         reason: requestForLeave.reasonOfLeave,
         status: requestForLeave.status,
         reasoning: requestForLeave.reasoning,
@@ -35,7 +34,6 @@ export const leaveRequestsRouter = createTRPCRouter({
       const [req] = await ctx.db
         .select({
           id: requestForLeave.id,
-          subject: requestForLeave.subject,
           reason: requestForLeave.reasonOfLeave,
           status: requestForLeave.status,
           start: requestForLeave.dateLeaveStart,
