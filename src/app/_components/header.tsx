@@ -16,7 +16,7 @@ export default function Header() {
 
     const urls = {
         home: "/",
-        requestForLeave: "/requestForLeave",
+        requestForLeave: "/requestForLeave/create",
         leaveRequests: "/leaveRequests",
         auth: "/auth",
         profile: "/profile"

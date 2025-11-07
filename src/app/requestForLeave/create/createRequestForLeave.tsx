@@ -5,13 +5,9 @@ import { ToastContainer, toast } from "react-toastify";
 import { api } from "~/trpc/react";
 import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
+import { ReasonsForLeave } from "~/server/db/schema";
 
-export const reasonOfLeaveValues = [
-  "vacation",
-  "personal",
-  "medical",
-  "extra"
-] as const;
+export const reasonOfLeaveValues = ReasonsForLeave.enumValues;
 
 export type ReasonOfLeave = (typeof reasonOfLeaveValues)[number];
 
@@ -19,7 +15,7 @@ export default function CreateRequestForLeave() {
   const { hasPermission, isLoading } = usePermission();
 
   const [error, setError] = useState<string | null>(null);
-  const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("vacation");
+  const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("leave");
   const [dateLeaveStart, setDateLeaveStart] = useState<Date>(new Date());
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
@@ -65,7 +61,7 @@ export default function CreateRequestForLeave() {
         subject: "Leave Request",
       });
 
-      setReasonOfLeave("vacation");
+      setReasonOfLeave("leave");
       setDateLeaveStart(new Date());
       setDateLeaveEnd(new Date());
       setReasoning("");
