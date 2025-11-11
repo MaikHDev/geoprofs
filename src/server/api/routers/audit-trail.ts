@@ -1,77 +1,73 @@
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  requirePermission,
-} from "~/server/api/trpc";
-import { LogEvents } from "~/server/db/schema";
-import { z } from "zod";
+import {createTRPCRouter, protectedProcedure, requirePermission,} from "~/server/api/trpc";
+import {LogContext, LogEvents, logs, roles, user, userRoles} from "~/server/db/schema";
+import {z} from "zod";
+import {and, eq, getTableColumns} from "drizzle-orm";
+import {TRPCError} from "@trpc/server";
 
 export const auditTrailRouter = createTRPCRouter({
-  getAllLogs: protectedProcedure
-    .use(requirePermission("Log.read"))
-    .query(({ ctx }) => {
-      return ctx.db.query.logs.findMany({
-        with: {
-          user: {
-            columns: {
-              name: true
+    getLogData: protectedProcedure
+        .use(requirePermission("Log.read"))
+        .input(z.object({
+            logContext: z.enum(LogContext.enumValues),
+            logEvent: z.enum(LogEvents.enumValues),
+        }))
+        .query(({ctx, input}) => {
+            if (!ctx.user) return;
+
+            switch (input.logContext) {
+                case 'leave_requests':
+                    if (!ctx.hasPermission("LogLeaveRequests.read")) throw new TRPCError({code: "UNAUTHORIZED"})
+                    break;
+                case 'roles':
+                    if (!ctx.hasPermission("LogRoles.read")) throw new TRPCError({code: "UNAUTHORIZED"})
+                    break;
+                case 'users':
+                    if (!ctx.hasPermission("LogUsers.read")) throw new TRPCError({code: "UNAUTHORIZED"})
+                    break;
+                case 'permissions':
+                    if (!ctx.hasPermission("LogPermissions.read")) throw new TRPCError({code: "UNAUTHORIZED"})
+                    break;
+                case 'departments':
+                    if (!ctx.hasPermission("LogDepartments.read")) throw new TRPCError({code: "UNAUTHORIZED"})
+                    break;
+                default:
+                    throw new TRPCError({code: "UNAUTHORIZED"})
             }
-          }
-        }
-      });
-    }),
 
-  getUsers: protectedProcedure
-    .use(requirePermission("LogUsers.read"))
-    .input(
-      z.object({
-        event: z.enum(LogEvents.enumValues),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { event } = input;
-      return ctx.db.query.logs.findMany({
-        with: {
-          user: {
-            columns: {
-              name: true,
-              lastName: true,
-            },
-          },
-        },
-        where: (logs, { and, eq }) =>
-          and(eq(logs.logEvent, event), eq(logs.logContext, "users")),
-      });
-    }),
 
-  getRequestsForLeave: protectedProcedure
-    .use(requirePermission("LogLeaveRequests.read"))
-    .input(
-      z.object({
-        event: z.enum(LogEvents.enumValues),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      const { event } = input;
-      return ctx.db.query.logs.findMany({
-        with: {
-          user: {
-            columns: {
-              name: true,
-              lastName: true,
-            },
-          },
-        },
-        where: (logs, { and, eq }) =>
-          and(eq(logs.logEvent, event), eq(logs.logContext, "leave_requests")),
-      });
-    }),
+            return ctx.db.select({
+                ...getTableColumns(logs),
+                user: {
+                    email: user.email,
+                    name: user.name,
+                    lastName: user.lastName,
+                    role: roles.roleName,
+                },
+            }).from(logs)
+                .leftJoin(user, eq(logs.userId, user.id))
+                .leftJoin(userRoles, eq(user.email, userRoles.userEmail))
+                .leftJoin(roles, eq(userRoles.roleId, roles.id))
+                .where(and(
+                    eq(logs.logContext, input.logContext),
+                    eq(logs.logEvent, input.logEvent),
+                ))
 
-  // createLogs: protectedProcedure
-  //   .input(z.object({
-  //       logEvent: NewLog["logEvent"],
-  //       logContext: NewLog["logContext"],
-  //       userId: NewLog["userId"],
-  //       details?: NewLog["details"],
-  //   }))
+
+        }),
+
+    // getAllLogData: protectedProcedure
+    //     .use(requirePermission("Log.read"))
+    //     .query(({ctx, input}) => {
+    //         if (!ctx.user) return;
+    //
+    //         return ctx.db.query.logs.findMany({
+    //             with: {
+    //                 user: {
+    //                     columns: {
+    //                         name: true
+    //                     }
+    //                 }
+    //             }
+    //         });
+    //     }),
 });
