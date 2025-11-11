@@ -5,11 +5,14 @@ import { nextCookies } from "better-auth/next-js";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg" }),
+  advanced: {
+    database: {
+      generateId: () => crypto.randomUUID(),
+    },
+  },
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
   },
   plugins: [nextCookies()],
 });
-
-

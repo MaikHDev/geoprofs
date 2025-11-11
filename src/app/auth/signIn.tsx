@@ -2,7 +2,6 @@
 import {useState} from "react";
 import {signIn} from "../../../utils/auth-actions";
 import {useRouter} from "next/navigation";
-import {api} from "~/trpc/react";
 
 export default function SignInPage() {
     const [email, setEmail] = useState("");
@@ -25,12 +24,11 @@ export default function SignInPage() {
         try {
             const result = await signIn(email, password);
 
-            if (!result.user) {
+            if (!result?.user) {
                 setError("Invalid email or password");
             }
 
-            if (result.redirect && result.url) {
-                console.log(result.url)
+            if (result?.redirect && result?.url) {
                 router.push(result.url)
             }
         } catch (err) {

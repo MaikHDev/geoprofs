@@ -191,7 +191,7 @@ export const session = pgTable("session", {
 });
 
 export const account = pgTable("account", {
-  id: text("id").primaryKey(),
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
   userId: text("user_id")
@@ -310,11 +310,31 @@ type logContext = {
 };
 
 export type LogsDetails =
-    | { context: "users"; before?: Partial<logContext["users"]>; after?: Partial<logContext["users"]>; }
-    | { context: "roles"; before?: Partial<logContext["roles"]>; after?: Partial<logContext["roles"]>; }
-    | { context: "permissions"; before?: Partial<logContext["permissions"]>; after?: Partial<logContext["permissions"]>; }
-    | { context: "leave_requests"; before?: Partial<logContext["leave_requests"]>; after?: Partial<logContext["leave_requests"]>; }
-    | { context: "departments"; before?: Partial<logContext["departments"]>; after?: Partial<logContext["departments"]>; };
+  | {
+      context: "users";
+      before?: Partial<logContext["users"]>;
+      after?: Partial<logContext["users"]>;
+    }
+  | {
+      context: "roles";
+      before?: Partial<logContext["roles"]>;
+      after?: Partial<logContext["roles"]>;
+    }
+  | {
+      context: "permissions";
+      before?: Partial<logContext["permissions"]>;
+      after?: Partial<logContext["permissions"]>;
+    }
+  | {
+      context: "leave_requests";
+      before?: Partial<logContext["leave_requests"]>;
+      after?: Partial<logContext["leave_requests"]>;
+    }
+  | {
+      context: "departments";
+      before?: Partial<logContext["departments"]>;
+      after?: Partial<logContext["departments"]>;
+    };
 
 export const logs = pgTable("logs", (d) => ({
   id: d.bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),

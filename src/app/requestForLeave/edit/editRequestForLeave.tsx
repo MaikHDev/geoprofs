@@ -15,7 +15,7 @@ export default function EditRequestForLeave() {
   const { hasPermission, isLoading: loadingPerms } = usePermission();
 
   const [error, setError] = useState<string | null>(null);
-  const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("vacation");
+  const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("leave");
   const [dateLeaveStart, setDateLeaveStart] = useState<Date>(new Date());
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
