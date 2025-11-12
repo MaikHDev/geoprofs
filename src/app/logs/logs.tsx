@@ -1,26 +1,30 @@
 "use client"
 
 import {useCallback, useEffect, useState} from "react";
-import type {inferRouterOutputs} from "@trpc/server";
-import type {AppRouter} from "~/server/api/root";
-import {LogContext as LC, type LogEvents as LE} from "~/server/db/schema";
+import {LogContext as LC, LogEvents as LE} from "~/server/db/schema";
 import {api} from "~/trpc/react";
 
 export default function LogsPage() {
-    type RouterOutput = inferRouterOutputs<AppRouter>;
-    type UsersOutput = RouterOutput['auditTrail']['getLogData'];
     type LogContext = typeof LC.enumValues[number];
     type LogEvents = typeof LE.enumValues[number];
+    type ViewTypes = ['contexts', 'events', 'log_data'];
 
-    const [error, setError] = useState('');
-    const [logView, setLogView] = useState<'contexts' | 'events' | 'log_data'>('contexts')
+    const [logView, setLogView] = useState<ViewTypes[number]>('contexts')
     const [context, setContext] = useState<LogContext | null>(null);
     const [events, setEvents] = useState<LogEvents | null>(null);
-    const [logData, setLogData] = useState<UsersOutput>(undefined);
 
+    const {data: logData, isLoading, refetch} = api.auditTrail.getLogData.useQuery(
+        {logContext: context!, logEvent: events!},
+        {
+            enabled: !!context && !!events,
+            refetchOnWindowFocus: false,
+        }
+    );
     useEffect(() => {
-        console.log("ran!")
-    }, [context, events]);
+        console.log("ran!");
+        console.log("logview: ", logView)
+        console.log("logdata: ", logData)
+    }, [context, events, logView, logData]);
 
     const HandleContext = useCallback((ctx: LogContext) => {
         if (ctx === context) return;
@@ -32,44 +36,74 @@ export default function LogsPage() {
 
     const HandleEvents = useCallback((evt: LogEvents) => {
         if (evt === events) return;
-        if (!LC.enumValues.includes(evt)) return;
+        if (!LE.enumValues.includes(evt)) return;
 
         setEvents(evt);
         setLogView('log_data');
     }, [events])
 
-    useEffect(() => {
-        if (logView !== 'log_data') return;
+    const HandleView = useCallback((view: ViewTypes[number]) => {
+        if (view === logView) return;
 
-        const {data, isLoading} = api.auditTrail.getLogData.useQuery({
-            logContext: context, logEvent: events
-        });
-
-        if (!data && !isLoading) {
-            setError("There has been a server error trying to fetch the data");
-            setLogData(undefined);
+        switch (view) {
+            case 'contexts':
+                setContext(null);
+            case 'events':
+                setEvents(null);
         }
 
-        setLogData(data);
+        setLogView(view);
+    }, [logView])
 
-    }, [context, events, logView]);
+    useEffect(() => {
+        if (logView !== 'log_data') return;
+        if (!context || !events) return;
+        void refetch();
+
+    }, [context, events, logView, refetch]);
 
     return (
         <>
+            <button className="hover:cursor-pointer" onClick={() => HandleView('contexts')}>Go back</button>
+            <br/>
+            <br/>
+            <div className="flex gap-[10px]">
+                {(logView === 'events' || logView === 'log_data') && context && (
+                    <button className="hover:cursor-pointer font-bold"
+                            onClick={() => HandleView('contexts')}>{context}</button>
+                )}
+                {logView === 'log_data' && events && (
+                    <div>{'->'}</div>
+                )}
+                {logView === 'log_data' && events && (
+                    <button className="hover:cursor-pointer font-bold"
+                            onClick={() => HandleView('events')}>{events}</button>
+                )}
+                <br/>
+            </div>
+            <br/>
             {logView === 'contexts' && LC.enumValues.map((ctx) => {
                 return (
-                    <button key={ctx} onClick={() => HandleContext(ctx)}></button>
+                    <div key={ctx}>
+                        <button className="hover:cursor-pointer" onClick={() => HandleContext(ctx)}>{ctx}</button>
+                        <br/>
+                    </div>
                 )
             })}
             {logView === 'events' && LE.enumValues.map((evt) => {
                 return (
-                    <button key={evt} onClick={() => HandleEvents(evt)}></button>
+                    <div key={evt}>
+                        <button className="hover:cursor-pointer" onClick={() => HandleEvents(evt)}>{evt}</button>
+                        <br/>
+                    </div>
                 )
             })}
-            {LogView === 'log_data' && logData?.map((item, i) => {
+            {logView === 'log_data' && logData?.map((item, i) => {
                 return (
                     <div key={i}>
-                        <h1>{item.logContext}</h1>
+                        {isLoading ? (<div>Loading...</div>) : (
+    <>hi</>
+                        )}
                     </div>
                 );
             })}

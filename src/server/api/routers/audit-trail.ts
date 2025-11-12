@@ -54,20 +54,4 @@ export const auditTrailRouter = createTRPCRouter({
 
 
         }),
-
-    // getAllLogData: protectedProcedure
-    //     .use(requirePermission("Log.read"))
-    //     .query(({ctx, input}) => {
-    //         if (!ctx.user) return;
-    //
-    //         return ctx.db.query.logs.findMany({
-    //             with: {
-    //                 user: {
-    //                     columns: {
-    //                         name: true
-    //                     }
-    //                 }
-    //             }
-    //         });
-    //     }),
 });
