@@ -13,11 +13,12 @@ export default function LogsPage() {
 
     type LogContext = typeof LC.enumValues[number];
     type LogEvents = typeof LE.enumValues[number];
-    type ViewTypes = ['contexts', 'events', 'log_data'];
+    type ViewTypes = ['contexts', 'events', 'logs'];
 
     const [logView, setLogView] = useState<ViewTypes[number]>('contexts')
     const [context, setContext] = useState<LogContext | null>(null);
     const [events, setEvents] = useState<LogEvents | null>(null);
+    const [selectedLog, setSelectedLog] = useState<number | null>(null);
 
     const {data: logData, isLoading, refetch} = api.auditTrail.getLogData.useQuery(
         {logContext: context!, logEvent: events!},
@@ -26,11 +27,6 @@ export default function LogsPage() {
             refetchOnWindowFocus: false,
         }
     );
-    useEffect(() => {
-        console.log("ran!");
-        console.log("logview: ", logView)
-        console.log("logdata: ", logData)
-    }, [context, events, logView, logData]);
 
     const HandleContext = useCallback((ctx: LogContext) => {
         if (ctx === context) return;
@@ -45,7 +41,7 @@ export default function LogsPage() {
         if (!LE.enumValues.includes(evt)) return;
 
         setEvents(evt);
-        setLogView('log_data');
+        setLogView('logs');
     }, [events])
 
     const HandleView = useCallback((view: ViewTypes[number]) => {
@@ -54,74 +50,94 @@ export default function LogsPage() {
         switch (view) {
             case 'contexts':
                 setContext(null);
+                setEvents(null);
+                break;
             case 'events':
                 setEvents(null);
+                break;
         }
 
         setLogView(view);
     }, [logView])
 
     useEffect(() => {
-        if (logView !== 'log_data') return;
+        if (logView !== 'logs') return;
         if (!context || !events) return;
         void refetch();
 
     }, [context, events, logView, refetch]);
 
     const LogItem = ({item}: { item: LogItem }) => {
-        function FormatValue(value: unknown) {
-            if (value === null) return 'null';
-            if (value === undefined) return 'undefined';
-            if (value instanceof Date) return value.toLocaleDateString();
-            if (typeof value === 'boolean') return value ? 'true' : 'false';
-            if (typeof value === 'object') return JSON.stringify(value, null, 2);
-            // eslint-disable-next-line @typescript-eslint/no-base-to-string
-            return String(value);
-        }
+        if (!item.details) return <div className="text-gray-400 text-sm">No details</div>;
 
         const before = item.details.before ?? {};
         const after = item.details.after ?? {};
+        const allKeys = new Set([...Object.keys(before), ...Object.keys(after)]);
 
-        // const changedValues = Object.entries(before)
 
-        const changedValues = Object.keys(before).filter((key) => {
-            const b = before[key as keyof typeof before];
-            const a = after[key as keyof typeof after];
-            return JSON.stringify(b) !== JSON.stringify(a);
-        });
+        if (allKeys.size === 0) {
+            return <div className="text-gray-400 text-sm">No changes</div>;
+        }
 
-        return (
-            <div className="flex gap-[30px]">
-                <div>
-                    {Object.entries(before).map(([key, value]) => {
-                        const itemValue = FormatValue(value);
-                        const isChanged = changedValues.includes(key);
+        if (item.id === selectedLog) {
+            return (
+                <div className="space-y-2">
+                    {Array.from(allKeys).map((key) => {
+                        const beforeVal = before[key as keyof typeof before];
+                        const afterVal = after[key as keyof typeof after];
+                        const hasChanged = beforeVal !== undefined && afterVal !== undefined && beforeVal !== afterVal;
+
                         return (
-                            <div
-                                key={key}
-                                className={isChanged ? "text-red-500" : ""}
-                            >
-                                Before: {key} : {itemValue}
+                            <div key={key} className="flex gap-4 text-sm py-1">
+                                <div className="w-32 text-gray-600 font-medium">
+                                    {key}:
+                                </div>
+                                <div className={`flex-1 ${hasChanged ? "text-red-600" : "text-gray-500"}`}>
+                                    {beforeVal ? String(beforeVal) : '-'}
+                                </div>
+                                <div className={`flex-1 ${hasChanged ? "text-green-600" : "text-gray-500"}`}>
+                                    {afterVal ? String(afterVal) : '-'}
+                                </div>
                             </div>
                         );
                     })}
                 </div>
-                <div>
-                    {Object.entries(after).map(([key, value]) => {
-                        const itemValue = FormatValue(value);
-                        const isChanged = changedValues.includes(key);
-                        return (
-                            <div
-                                key={key}
-                                className={isChanged ? "text-green-500" : ""}
-                            >
-                                After: {key} : {itemValue}
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-        );
+            );
+        } else{
+
+        }
+        // return (
+        //     <div className="flex gap-[30px]">
+        //         <div>
+        //             {Object.entries(before).map(([key, value]) => {
+        //                 const itemValue = FormatValue(value);
+        //                 const isChanged = changedValues.includes(key);
+        //                 return (
+        //                     <div
+        //                         key={key}
+        //                         className={isChanged ? "text-red-500" : ""}
+        //                     >
+        //                         Before: {key} : {itemValue}
+        //                     </div>
+        //                 );
+        //             })}
+        //         </div>
+        //         <div>
+        //             {Object.entries(after).map(([key, value]) => {
+        //                 const itemValue = FormatValue(value);
+        //                 const isChanged = changedValues.includes(key);
+        //                 return (
+        //                     <div
+        //                         key={key}
+        //                         className={isChanged ? "text-green-500" : ""}
+        //                     >
+        //                         After: {key} : {itemValue}
+        //                     </div>
+        //                 );
+        //             })}
+        //         </div>
+        //     </div>
+        // );
     }
 
     return (
@@ -130,14 +146,14 @@ export default function LogsPage() {
             <br/>
             <br/>
             <div className="flex gap-[10px]">
-                {(logView === 'events' || logView === 'log_data') && context && (
+                { context && (
                     <button className="hover:cursor-pointer font-bold"
                             onClick={() => HandleView('contexts')}>{context}</button>
                 )}
-                {logView === 'log_data' && events && (
+                {events && (
                     <div>{'->'}</div>
                 )}
-                {logView === 'log_data' && events && (
+                {events && (
                     <button className="hover:cursor-pointer font-bold"
                             onClick={() => HandleView('events')}>{events}</button>
                 )}
@@ -162,8 +178,7 @@ export default function LogsPage() {
                     )
                 })}
             </div>
-            {logView === 'log_data' && <div>Hello</div>}
-            {logView === 'log_data' && logData?.map((item) => {
+            {logView === 'logs' && logData?.map((item) => {
                 return <LogItem key={item.id} item={item}/>
             })}
         </>
