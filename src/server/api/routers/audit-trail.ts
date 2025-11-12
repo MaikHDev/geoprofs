@@ -44,9 +44,9 @@ export const auditTrailRouter = createTRPCRouter({
                     role: roles.roleName,
                 },
             }).from(logs)
-                .leftJoin(user, eq(logs.userId, user.id))
-                .leftJoin(userRoles, eq(user.email, userRoles.userEmail))
-                .leftJoin(roles, eq(userRoles.roleId, roles.id))
+                .innerJoin(user, eq(logs.userId, user.id))
+                .innerJoin(userRoles, eq(user.email, userRoles.userEmail))
+                .innerJoin(roles, eq(userRoles.roleId, roles.id))
                 .where(and(
                     eq(logs.logContext, input.logContext),
                     eq(logs.logEvent, input.logEvent),
