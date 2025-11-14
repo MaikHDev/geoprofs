@@ -5,8 +5,11 @@ import {LogContext as LC, LogEvents as LE} from "~/server/db/schema";
 import {api} from "~/trpc/react";
 import type {inferRouterOutputs} from "@trpc/server";
 import type {AppRouter} from "~/server/api/root";
+import {usePermission} from "~/hooks/usePermission";
 
 export default function LogsPage() {
+    const { hasPermission, isLoadingPerms } = usePermission();
+
     type RouterOutput = NonNullable<inferRouterOutputs<AppRouter>>;
     type LogItems = RouterOutput['auditTrail']['getLogData'];
     type LogItem = NonNullable<LogItems> extends (infer T)[] ? T : never;
@@ -145,22 +148,30 @@ export default function LogsPage() {
                             subtitle,
                             color = "bg-white hover:bg-gray-50",
                             onClick,
+                            date
                         }: {
         title: string;
         subtitle?: string;
         color?: string;
+        date?: Date;
         onClick: () => void;
-    }) => (
-        <button
-            onClick={onClick}
-            className={`w-full p-4 rounded-md shadow-md flex justify-between items-center hover:scale-[1.01] transition-transform ${color}`}
-        >
-            <div>
-                <div className="font-medium">{title}</div>
-                {subtitle && <div className="text-sm text-gray-500">{subtitle}</div>}
-            </div>
-        </button>
-    );
+    }) => {
+        const formattedDate = date ? `${date?.toLocaleDateString()} ${date.getHours()}:${date.getMinutes()}` : null;
+
+        return (
+            <button
+                onClick={onClick}
+                className={`w-full p-4 rounded-md shadow-md flex justify-between items-center hover:scale-[1.01] transition-transform ${color}`}
+            >
+                <div>
+                    <div className="font-medium">{title}</div>
+                    {subtitle && <div className="text-sm text-gray-500">{subtitle}</div>}
+                </div>
+                <div>{formattedDate ?? ''}</div>
+            </button>
+        )
+
+    };
 
     const BreadcrumbPill = ({
                                 label,
@@ -175,7 +186,7 @@ export default function LogsPage() {
             onClick={onClick}
             disabled={active || !onClick}
             className={`px-4 py-2 rounded-md text-base font-semibold transition shadow ${
-                active ? "bg-[#00888F] text-black" : "bg-[#CCCCCC] hover:bg-[#9d9d9d] text-black"
+                active ? "bg-[#00888F] text-white" : "bg-[#CCCCCC] hover:bg-[#9d9d9d] text-black"
             }`}
         >
             {label}
@@ -267,6 +278,7 @@ export default function LogsPage() {
                                 key={log.id}
                                 title={`${log.user?.name ?? "-"} ${log.user?.lastName ?? "-"}`}
                                 subtitle={log.user?.email}
+                                date={log.createdAt}
                                 onClick={() => {
                                     setSelectedLog(log);
                                     setLogView("single");
