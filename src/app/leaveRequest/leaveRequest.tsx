@@ -37,7 +37,6 @@ export default function LeaveRequestDetailsPage() {
 
   return (
     <div className="p-6">
-      <h1 className="text-xl font-semibold">{data.subject}</h1>
       <p><strong>Requester:</strong> {data.requesterName} ({data.requesterEmail})</p>
       <p><strong>Reason:</strong> {data.reason}</p>
       <p><strong>Status:</strong> {data.status}</p>

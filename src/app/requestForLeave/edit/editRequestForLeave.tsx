@@ -6,12 +6,19 @@ import { ToastContainer, toast } from "react-toastify";
 import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 import { useParams } from "next/navigation";
-import { reasonOfLeaveValues, type ReasonOfLeave } from "../create/createRequestForLeave";
+import {
+  reasonOfLeaveValues,
+  type ReasonOfLeave,
+} from "../create/createRequestForLeave";
+import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
+import ErrorHandler from "~/app/_components/errorHandler";
 
 export default function EditRequestForLeave() {
   const params = useParams();
   const requestId = Number(params.id);
 
+  const { data: session, isLoading: isLoadingSession } =
+    api.userAccount.getUserSession.useQuery();
   const { hasPermission, isLoading: loadingPerms } = usePermission();
 
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +31,7 @@ export default function EditRequestForLeave() {
 
   const utils = api.useUtils();
 
-  const { data: request, isLoading } = api.requestForLeave.getById.useQuery({
+  const { data: request, isLoading, error: requestError } = api.requestForLeave.getById.useQuery({
     id: requestId,
   });
   const updateRequest = api.requestForLeave.update.useMutation({
@@ -62,11 +69,28 @@ export default function EditRequestForLeave() {
     setDisabledForm(isSame);
   }, [dateLeaveStart, dateLeaveEnd, reasonOfLeave, reasoning]);
 
-  if(!request && !isLoading) {
-      return <h1 className="flex items-center justify-center min-h-screen text-3xl text-red-500">You are unable edit this leave request</h1>;
+  if (!isLoadingSession && !session) {
+    return (
+      <ReturnView
+        label={TrpcErrorlikeMessages.session.message}
+        returnName="Login"
+        returnPath="/auth"
+      />
+    );
+  }
+  if (requestError?.data) {
+    return <ErrorHandler code={requestError.data.code} message={requestError.message} />;
   }
 
-  if (!loadingPerms && !hasPermission("LeaveRequest.update") ) {
+  if (!request && !isLoading) {
+    return (
+      <h1 className="flex min-h-screen items-center justify-center text-3xl text-red-500">
+        You are unable edit this leave request
+      </h1>
+    );
+  }
+
+  if (!loadingPerms && !hasPermission("LeaveRequest.update")) {
     return <ReturnView />;
   }
 
@@ -109,7 +133,12 @@ export default function EditRequestForLeave() {
     }
   }
 
-  if (isLoading || loadingPerms) return <p className="flex items-center justify-center min-h-screen text-3xl">Loading...</p>;
+  if (isLoading || loadingPerms || isLoadingSession)
+    return (
+      <p className="flex min-h-screen items-center justify-center text-3xl">
+        Loading...
+      </p>
+    );
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F9F9F9] p-6">
@@ -134,9 +163,7 @@ export default function EditRequestForLeave() {
                   name="reasonOfLeave"
                   value={type}
                   checked={reasonOfLeave === type}
-                  onChange={() =>
-                    setReasonOfLeave(type)
-                  }
+                  onChange={() => setReasonOfLeave(type)}
                   className="accent-[#00888F]"
                 />
                 <span className="text-[#000000] capitalize">{type}</span>

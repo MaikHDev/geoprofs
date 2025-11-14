@@ -1,10 +1,8 @@
-import { auth } from "../../../../utils/auth";
 import { db } from "~/server/db";
 import { account, user } from "~/server/db/schema";
-import {
-  type AccountType,
-  createAccount,
-} from "../../../../utils/auth-actions";
+import { type AccountType, insertUser } from "~/server/api/routers/userAccount";
+import { auth } from "../../../../utils/auth";
+import { eq } from "drizzle-orm";
 
 export const users: AccountType[] = [
   {
@@ -33,16 +31,30 @@ export const users: AccountType[] = [
   },
 ];
 
+async function createUser(u: AccountType) {
+  const context = await auth.$context;
+  u.password = await context.password.hash(u.password);
+
+  const [existingUser] = await db
+    .selectDistinct()
+    .from(user)
+    .where(eq(user.email, u.email));
+
+  if (existingUser) {
+    console.log("A user already exists with that email");
+    return;
+  }
+  await insertUser(u);
+}
+
 export async function seedUsersAndAccounts() {
-
-
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(user);
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(account);
 
   for (const u of users) {
-    await createAccount(u);
+    await createUser(u);
   }
 
   console.log("Users and Accounts seeded");
