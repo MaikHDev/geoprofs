@@ -30,6 +30,7 @@ export default function LogsPage() {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [selectedUser, setSelectedUser] = useState<string>("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   const {
     data: logData,
@@ -39,6 +40,11 @@ export default function LogsPage() {
   } = api.auditTrail.getLogData.useQuery(
     { logContext: context!, logEvent: events! },
     {
+      retry: (failureCount, error) => {
+        if (error?.data?.code === "UNAUTHORIZED") return false;
+
+        return failureCount < 3;
+      },
       enabled: !!context && !!events,
       refetchOnWindowFocus: false,
     },
@@ -85,6 +91,7 @@ export default function LogsPage() {
     }
     setLogView(view);
   }, []);
+
   if (!isLoadingSession && !session) {
     return (
       <ReturnView
@@ -94,9 +101,6 @@ export default function LogsPage() {
       />
     );
   }
-  if (error?.data) {
-    return <ErrorHandler code={error.data.code} message={error.message} />;
-  }
   if (isLoading || isLoadingPerms) {
     return <div className="text-gray-400">Loading...</div>;
   }
@@ -105,19 +109,25 @@ export default function LogsPage() {
   }
 
   const filteredLogs =
-    logData?.filter((log) => {
-      const logTime = new Date(log.createdAt).getTime();
-      const start = startDate ? new Date(startDate).getTime() : -Infinity;
-      const end = endDate
-        ? new Date(endDate).setHours(23, 59, 59, 999)
-        : Infinity;
-      const userMatch = selectedUser
-        ? `${log.user?.name ?? ""} ${log.user?.lastName ?? ""} ${log.user?.email ?? ""}`
-            .toLowerCase()
-            .includes(selectedUser.toLowerCase())
-        : true;
-      return logTime >= start && logTime <= end && userMatch;
-    }) ?? [];
+    logData
+      ?.filter((log) => {
+        const logTime = new Date(log.createdAt).getTime();
+        const start = startDate ? new Date(startDate).getTime() : -Infinity;
+        const end = endDate
+          ? new Date(endDate).setHours(23, 59, 59, 999)
+          : Infinity;
+        const userMatch = selectedUser
+          ? `${log.user?.name ?? ""} ${log.user?.lastName ?? ""} ${log.user?.email ?? ""}`
+              .toLowerCase()
+              .includes(selectedUser.toLowerCase())
+          : true;
+        return logTime >= start && logTime <= end && userMatch;
+      })
+      .sort((a, b) => {
+        const timeA = new Date(a.createdAt).getTime();
+        const timeB = new Date(b.createdAt).getTime();
+        return sortOrder === "asc" ? timeA - timeB : timeB - timeA;
+      }) ?? [];
 
   const LogDetails = ({ item }: { item: LogItem }) => {
     if (!item.details) return <div className="text-gray-400">No details</div>;
@@ -186,7 +196,11 @@ export default function LogsPage() {
     onClick: () => void;
   }) => {
     const formattedDate = date
-      ? `${date?.toLocaleDateString()} ${date.getHours()}:${date.getMinutes()}`
+      ? `${date.toLocaleDateString()} ${date.toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })}`
       : null;
 
     return (
@@ -292,9 +306,11 @@ export default function LogsPage() {
         </div>
       )}
 
+
+
       {logView === "logs" && (
         <div className="space-y-4">
-          <div className="mb-4 grid grid-cols-3 gap-4">
+          <div className="mb-4 grid grid-cols-4 gap-4">
             <input
               type="datetime-local"
               value={startDate}
@@ -317,6 +333,12 @@ export default function LogsPage() {
               className="rounded border p-2"
               placeholder="User"
             />
+            <button
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
+              className="rounded border bg-white p-2 font-medium shadow transition hover:bg-gray-50"
+            >
+              Sort: {sortOrder === "asc" ? "Oldest First ↑" : "Newest First ↓"}
+            </button>
           </div>
           {(startDate || endDate || selectedUser) && (
             <button
@@ -333,14 +355,10 @@ export default function LogsPage() {
           {isLoading && (
             <div className="text-center text-gray-500">Loading...</div>
           )}
-          {!isLoading && !filteredLogs.length && (
+          {!isLoading && !filteredLogs.length && !error?.data && (
             <div className="text-center text-gray-400">No logs found</div>
           )}
-          {!isLoading && !filteredLogs.length && error && (
-            <div className="text-center text-gray-400">
-              {error.data?.code} {error.message ? ": " + error.message : ""}
-            </div>
-          )}
+
           {!isLoading &&
             filteredLogs.map((log) => (
               <CardButton
@@ -387,6 +405,10 @@ export default function LogsPage() {
           </div>
           <LogDetails item={selectedLog} />
         </div>
+      )}
+
+      {error?.data && (
+        <ErrorHandler code={error.data.code} message={error.message} />
       )}
     </div>
   );

@@ -24,7 +24,7 @@ export const users: AccountType[] = [
   {
     vacationDays: 30,
     email: "piet@email.com",
-    name: "John",
+    name: "Piet",
     lastName: "pieters",
     password: "12345678",
     csn: "1236547582341",

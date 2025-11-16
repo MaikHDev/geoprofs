@@ -53,8 +53,7 @@ export const auditTrailRouter = createTRPCRouter({
         default:
           throw new TRPCError({
             code: "UNAUTHORIZED",
-            message:
-              "You don't have the required permissions to see these data",
+            message: error,
           });
       }
 
@@ -70,8 +69,8 @@ export const auditTrailRouter = createTRPCRouter({
         })
         .from(logs)
         .innerJoin(user, eq(logs.userId, user.id))
-        .innerJoin(userRoles, eq(user.email, userRoles.userEmail))
-        .innerJoin(roles, eq(userRoles.roleId, roles.id))
+        .leftJoin(userRoles, eq(user.email, userRoles.userEmail))
+        .leftJoin(roles, eq(userRoles.roleId, roles.id))
         .where(
           and(
             eq(logs.logContext, input.logContext),
