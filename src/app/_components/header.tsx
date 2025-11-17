@@ -1,66 +1,158 @@
 "use client";
 
 import Link from "next/link";
-import {usePermission} from "~/hooks/usePermission";
-import {usePathname} from "next/navigation";
-import {useSession} from "~/../utils/auth-client";
+import { usePermission } from "~/hooks/usePermission";
+import { usePathname } from "next/navigation";
+import { useSession } from "~/../utils/auth-client";
+import React, { useState } from "react";
+import { api } from "~/trpc/react";
+import { toast, ToastContainer } from "react-toastify";
+
+type NavItem = {
+  label: string;
+  show?: boolean;
+} & ({ href: string; onClick?: never } | { onClick: () => void; href?: never });
 
 export default function Header() {
-    const pathname = usePathname();
+  const pathname = usePathname();
 
-    const session = useSession();
-    const isAuthenticated = !!session?.data?.user;
+  const session = useSession();
+  const isAuthenticated = !!session?.data?.user;
 
+  const { hasPermission } = usePermission();
 
-    const {hasPermission} = usePermission({enabled: isAuthenticated});
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
-    const urls = {
-        home: "/",
-        requestForLeave: "/requestForLeave",
-        leaveRequests: "/leaveRequests",
-        auth: "/auth",
-        profile: "/profile"
-    } as const;
+  const createRequest = api.requestForLeave.create.useMutation({
+    onSuccess: () => {
+      toast.success("Successfully called in sick today");
+    },
+    onError: () => {
+      toast.error("You have already called in sick for today!");
+    },
+  });
 
-    const navItems = [
-        {label: "Home", href: urls.home},
-        {
-            label: "Make leave request",
-            href: urls.requestForLeave,
-            show: isAuthenticated && hasPermission("LeaveRequest.create"),
-        },
-        {
-            label: "Leave requests",
-            href: urls.leaveRequests,
-            show: isAuthenticated && hasPermission("LeaveRequestReviewUseOthers.create"),
-        },
-        {label: "Login", href: urls.auth, show: !isAuthenticated},
-        {label: "Profile", href: urls.profile, show: isAuthenticated},
-    ];
+  const urls = {
+    home: "/",
+    requestForLeave: "/requestForLeave/create",
+    leaveRequests: "/leaveRequests",
+    auth: "/auth",
+    dashboard: "/dashboard",
+  } as const;
 
-    return (
-        <header className="flex items-center justify-between bg-white px-6 py-4 shadow-md">
-            <h1 className="text-2xl font-bold text-gray-800">
-                <Link href={urls.home}>Geoprofs</Link>
-            </h1>
+  const handleCallInSick = () => {
+    setShowConfirmation(true);
+  };
 
-            <nav className="space-x-6">
-                {navItems
-                    .filter((item) => item.show ?? true)
-                    .map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={
-                                pathname === item.href
-                                    ? "text-blue-600"
-                                    : "text-gray-700 transition hover:text-blue-600"
-                            }
-                        >
-                            {item.label}
-                        </Link>
-                    ))}
-            </nav>
-        </header>
-    );
+  const handleConfirm = () => {
+    createRequest.mutate({
+      subject: "Calling in sick for today",
+      reasonOfLeave: "medical",
+      dateLeaveStart: new Date(),
+      dateLeaveEnd: new Date(),
+      reasoning: "Sick",
+    });
+
+    setShowConfirmation(false);
+  };
+
+  const handleCancel = () => {
+    setShowConfirmation(false);
+  };
+
+  const navItems: NavItem[] = [
+    { label: "Home", href: urls.home },
+    {
+      label: "Make leave request",
+      href: urls.requestForLeave,
+      show: isAuthenticated && hasPermission("LeaveRequest.create"),
+    },
+    {
+      label: "Call in sick",
+      onClick: handleCallInSick,
+      show: isAuthenticated && hasPermission("LeaveRequest.create"),
+    },
+    {
+      label: "Leave requests",
+      href: urls.leaveRequests,
+      show:
+        isAuthenticated && hasPermission("LeaveRequestReviewUseOthers.create"),
+    },
+    { label: "Login", href: urls.auth, show: !isAuthenticated },
+    { label: "Dashboard", href: urls.dashboard, show: isAuthenticated },
+  ];
+
+  return (
+    <>
+      <ToastContainer />
+      <header className="flex items-center justify-between bg-white px-6 py-4 shadow-md">
+        <h1 className="text-2xl font-bold text-gray-800">
+          <Link href={urls.home}>Geoprofs</Link>
+        </h1>
+        <nav className="space-x-6">
+          {navItems
+            .filter((item) => item.show ?? true)
+            .map((item, index) => {
+              if (item.onClick) {
+                return (
+                  <button
+                    key={index}
+                    onClick={item.onClick}
+                    className="font-inherit cursor-pointer border-none bg-transparent p-0 text-gray-700 transition hover:text-blue-600"
+                  >
+                    {item.label}
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={
+                    pathname === item.href
+                      ? "text-blue-600"
+                      : "text-gray-700 transition hover:text-blue-600"
+                  }
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+        </nav>
+
+        {showConfirmation && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div
+              className="bg-opacity-50 absolute inset-0 bg-black"
+              onClick={handleCancel}
+            />
+
+            <div className="relative mx-4 w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
+              <h2 className="mb-4 text-xl font-semibold text-gray-800">
+                Confirm Action
+              </h2>
+              <p className="mb-6 text-gray-600">
+                Are you sure you want to call in sick today?
+              </p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={handleCancel}
+                  className="rounded bg-gray-200 px-4 py-2 text-gray-700 transition hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  className="rounded bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
+    </>
+  );
 }

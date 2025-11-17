@@ -4,8 +4,9 @@ import {
   protectedProcedure,
   requirePermission,
 } from "../trpc";
-import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { ReasonsForLeave, requestForLeave, user } from "~/server/db/schema";
+import { eq, and, sql } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const requestForLeaveRouter = createTRPCRouter({
   create: protectedProcedure
@@ -31,21 +32,36 @@ export const requestForLeaveRouter = createTRPCRouter({
         return;
       }
 
-      const newRequest = await ctx.db
-        .insert(requestForLeave)
-        .values({
-          userId: ctx.session.user.id,
-          subject: input.subject,
-          reasonOfLeave: input.reasonOfLeave,
-          dateLeaveStart: input.dateLeaveStart,
-          dateLeaveEnd: input.dateLeaveEnd,
-          reasoning: input.reasoning,
-          feedback: "",
-          reviewer: ctx.session.user.id,
-        })
-        .returning();
+      console.log(input.dateLeaveStart.toLocaleString())
 
-      return newRequest[0];
+      const [existing] = await ctx.db
+        .select({
+          requestCount: ctx.db.$count(requestForLeave),
+        })
+        .from(requestForLeave)
+        .where(
+          and(
+            sql`DATE(${requestForLeave.dateLeaveStart}) = DATE(${input.dateLeaveStart})`,
+            sql`DATE(${requestForLeave.dateLeaveEnd}) = DATE(${input.dateLeaveEnd})`,
+            eq(requestForLeave.userId, ctx.user.id),
+          ),
+        )
+        .limit(1);
+
+      if (existing && existing.requestCount > 0) {
+        throw new TRPCError({code: 'CONFLICT', message: "You have already placed a request of leave for that date."})
+      }
+
+      await ctx.db.insert(requestForLeave).values({
+        userId: ctx.session.user.id,
+        subject: input.subject,
+        reasonOfLeave: input.reasonOfLeave,
+        dateLeaveStart: input.dateLeaveStart,
+        dateLeaveEnd: input.dateLeaveEnd,
+        reasoning: input.reasoning,
+        feedback: "",
+        reviewer: ctx.session.user.id,
+      });
     }),
 
   update: protectedProcedure
@@ -108,7 +124,7 @@ export const requestForLeaveRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-       const result = await ctx.db
+      const result = await ctx.db
         .select()
         .from(requestForLeave)
         .where(
@@ -119,7 +135,7 @@ export const requestForLeaveRouter = createTRPCRouter({
           ),
         )
         .limit(1);
-        
-        return result[0] ?? null;
+
+      return result[0] ?? null;
     }),
 });
