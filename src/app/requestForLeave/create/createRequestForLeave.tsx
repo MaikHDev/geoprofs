@@ -72,7 +72,6 @@ export default function CreateRequestForLeave() {
       toast.success("Request placed!");
     } catch (err) {
       if (err && err instanceof Error) {
-        setError(err.message ?? "Unknown error");
         toast.error(err.message);
       }
     }
@@ -170,11 +169,6 @@ export default function CreateRequestForLeave() {
           />
         </div>
         <div className="flex flex-col">
-          {error && (
-            <p className="mb-3 text-center text-sm font-medium text-[#FF3333]">
-              {error}
-            </p>
-          )}
           <button
             type="submit"
             disabled={createRequest.isPending}

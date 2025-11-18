@@ -1,15 +1,15 @@
 "use client";
 import { useState } from "react";
-import { signIn } from "../../../utils/auth-actions";
+// import { signIn } from "../../../utils/auth-actions";
 import { useRouter } from "next/navigation";
-import { useSession } from "../../../utils/auth-client";
+import { signIn, useSession } from "../../../utils/auth-client";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { data: session, isPending, refetch } = useSession();
+  const { data: session, isPending } = useSession();
 
   const router = useRouter();
 
@@ -25,16 +25,18 @@ export default function SignInPage() {
 
     setLoading(true);
     try {
-      const result = await signIn(email, password);
-
-      if (!result.user) {
-        setError("Invalid email or password");
-      }
-
-      if (result.redirect && result.url) {
-        refetch();
-        router.push(result.url);
-      }
+      await signIn.email(
+        {
+          email,
+          password,
+          callbackURL: "/dashboard",
+        },
+        {
+          onError: (ctx) => {
+            setError(ctx.error.message);
+          },
+        },
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {

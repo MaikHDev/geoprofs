@@ -7,6 +7,7 @@ import { useSession } from "~/../utils/auth-client";
 import React, { useState } from "react";
 import { api } from "~/trpc/react";
 import { toast, ToastContainer } from "react-toastify";
+import { useSessionContext } from "~/app/_components/session-provider";
 
 type NavItem = {
   label: string;
@@ -16,8 +17,8 @@ type NavItem = {
 export default function Header() {
   const pathname = usePathname();
 
-  const session = useSession();
-  const isAuthenticated = !!session?.data?.user;
+  const session = useSessionContext();
+  const isAuthenticated = !!session?.user;
 
   const { hasPermission } = usePermission();
 

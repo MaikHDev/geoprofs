@@ -13,6 +13,8 @@ export const env = createEnv({
       .default("development"),
     BETTER_AUTH_SECRET: z.string(),
     BETTER_AUTH_URL: z.string().url(),
+    RESEND_API_KEY: z.string(),
+    RESEND_EMAIL_FROM: z.string(),
   },
 
   /**
@@ -35,6 +37,8 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
     BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    RESEND_EMAIL_FROM: process.env.RESEND_EMAIL_FROM,
 
     NEXT_PUBLIC_VERCEL_URL: process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000",
     NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SOCKET_URL,
