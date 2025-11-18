@@ -1,15 +1,15 @@
 "use client";
 import { useState } from "react";
-// import { signIn } from "../../../utils/auth-actions";
 import { useRouter } from "next/navigation";
-import { signIn, useSession } from "../../../utils/auth-client";
+import { signIn } from "../../../utils/auth-client";
+import { useSessionContext } from "~/app/_components/session-provider";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { data: session, isPending } = useSession();
+  const session = useSessionContext();
 
   const router = useRouter();
 
@@ -18,29 +18,9 @@ export default function SignInPage() {
 
     setError(null);
 
-        setError(null);
-
-        if (password.length < 8) {
-            setError("Password must be at least 8 characters");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            const result = await signIn(email, password);
-
-            if (!result?.user) {
-                setError("Invalid email or password");
-            }
-
-            if (result?.redirect && result?.url) {
-                router.push(result.url)
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Unknown error");
-        } finally {
-            setLoading(false);
-        }
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
+      return;
     }
 
     setLoading(true);
@@ -68,7 +48,7 @@ export default function SignInPage() {
     router.push("/dashboard");
   }
 
-  if (!isPending && !session?.user) {
+  if (!session?.user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-100">
         <form

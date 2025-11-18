@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import { toast } from "react-toastify";
-import { useSessionContext } from "~/app/_components/session-provider";
 import { requestPasswordReset, signOut } from "../../../utils/auth-client";
 import { useRouter } from "next/navigation";
 import ReturnView from "~/app/_components/returnView";
+import { useSessionContext } from "~/app/_components/session-provider";
 
 export default function Profile() {
   const session = useSessionContext();
@@ -56,6 +56,7 @@ export default function Profile() {
     await signOut({
       fetchOptions: {
         onSuccess: () => {
+          toast.success("Successfully signed out!")
           router.push("/");
         },
       },
@@ -94,7 +95,7 @@ export default function Profile() {
             <label className="mb-1 font-medium text-[#000000]">Role:</label>
             <input
               type="text"
-              value={user?.role ?? "User"}
+              value={user?.role ?? ""}
               disabled
               className="cursor-not-allowed rounded-[4px] border border-[#CCCCCC] bg-gray-50 px-3 py-2 text-[#000000]"
             />

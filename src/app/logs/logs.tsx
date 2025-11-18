@@ -5,15 +5,14 @@ import { LogContext as LC, LogEvents as LE } from "~/server/db/schema";
 import { api } from "~/trpc/react";
 import type { inferRouterOutputs } from "@trpc/server";
 import type { AppRouter } from "~/server/api/root";
-import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
 import ErrorHandler from "~/app/_components/errorHandler";
+import { useSessionContext } from "~/app/_components/session-provider";
 
 export default function LogsPage() {
-  const { data: session, isLoading: isLoadingSession } =
-    api.userAccount.getUserSession.useQuery();
-  const { hasPermission, isLoading: isLoadingPerms } = usePermission();
+  const session = useSessionContext();
+  const hasPermission = session?.hasPermission;
 
   type RouterOutput = NonNullable<inferRouterOutputs<AppRouter>>;
   type LogItems = RouterOutput["auditTrail"]["getLogData"];
@@ -92,7 +91,7 @@ export default function LogsPage() {
     setLogView(view);
   }, []);
 
-  if (!isLoadingSession && !session) {
+  if (!session) {
     return (
       <ReturnView
         label={TrpcErrorlikeMessages.session.message}
@@ -101,10 +100,10 @@ export default function LogsPage() {
       />
     );
   }
-  if (isLoading || isLoadingPerms) {
+  if (isLoading) {
     return <div className="text-gray-400">Loading...</div>;
   }
-  if (!isLoadingPerms && !hasPermission("Log.read")) {
+  if (!hasPermission?.["Log.read"]) {
     return <ReturnView returnName="Dashboard" returnPath="/dashboard" />;
   }
 
@@ -305,8 +304,6 @@ export default function LogsPage() {
           })}
         </div>
       )}
-
-
 
       {logView === "logs" && (
         <div className="space-y-4">

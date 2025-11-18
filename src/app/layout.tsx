@@ -1,14 +1,14 @@
 import "~/styles/globals.css";
-
-import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { SocketProvider } from "~/app/_components/socket-provider";
-import { api, HydrateClient } from "~/trpc/server";
-import Header from "~/app/_components/header";
+import type { Metadata } from "next";
 import { SessionProvider } from "~/app/_components/session-provider";
-import { getUserSession } from "../../utils/auth-actions";
+import { api } from "~/trpc/server";
+import Header from "~/app/_components/header";
+import { ToastContainer } from "react-toastify";
+import React from "react";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -25,7 +25,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   await api.auth.getMyPermissions.prefetch();
-  const session = await getUserSession();
+  const session = await api.userAccount.getUserSession();
 
   return (
     <html lang="en" className={`${geist.variable}`}>
@@ -33,9 +33,8 @@ export default async function RootLayout({
         <TRPCReactProvider>
           <SessionProvider session={session}>
             <SocketProvider>
-              <HydrateClient>
-                <Header />
-              </HydrateClient>
+              <ToastContainer />
+              <Header />
               {children}
             </SocketProvider>
           </SessionProvider>

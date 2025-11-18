@@ -44,7 +44,7 @@ async function createUser(u: AccountType) {
     console.log("A user already exists with that email");
     return;
   }
-  await insertUser(u);
+  await insertUser({ creator: u.name, input: u });
 }
 
 export async function seedUsersAndAccounts() {

@@ -24,7 +24,7 @@ export const auth = betterAuth({
         from: env.RESEND_EMAIL_FROM,
         to: user.email,
         subject: "Reset your password",
-        html: `Click the link to reset your password: ${url}`,
+        html: `Hello ${user.name}! Please click the link to reset your password: ${url}`,
       });
 
       if (error) {
@@ -38,7 +38,7 @@ export const auth = betterAuth({
         from: env.RESEND_EMAIL_FROM,
         to: user.email,
         subject: "Reset your password",
-        html: `Click the link to verify your email ${url}
+        html: `Hello ${user.name}! Please click the link to verify your email ${url}
         
         On Verification you'll receive a new email to setup your password
         `,

@@ -1,9 +1,8 @@
 import Profile from "~/app/profile/profile";
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+
   return (
-    <>
       <Profile />
-    </>
   );
 }

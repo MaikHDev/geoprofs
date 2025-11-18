@@ -1,4 +1,8 @@
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  requirePermission,
+} from "~/server/api/trpc";
 import { eq, type InferInsertModel } from "drizzle-orm";
 
 import { account, user } from "~/server/db/schema";
@@ -7,7 +11,7 @@ import { db } from "~/server/db";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { auth } from "utils/auth";
-import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
+import { sendVerificationEmail } from "../../../../utils/auth-client";
 
 export const accountSchema = z.object({
   password: z.string(),
@@ -24,7 +28,13 @@ export type AccountType = InferInsertModel<typeof user> & {
   csn?: string | null;
 };
 
-export const insertUser = async (input: AccountType) => {
+export const insertUser = async ({
+  creator,
+  input,
+}: {
+  creator: string;
+  input: AccountType;
+}) => {
   const [userAcc] = await db
     .insert(user)
     .values({
@@ -49,29 +59,33 @@ export const insertUser = async (input: AccountType) => {
     await logAction({
       logContext: "users",
       logEvent: "created",
-      userId: userAcc.id,
+      userId: creator ?? userAcc.id,
       details: {
         context: "users",
         after: userAcc,
       },
     });
+
+    return userAcc.email;
   }
 };
 
 export const userAccountRouter = createTRPCRouter({
   getUserSession: publicProcedure.query(({ ctx }) => {
-    return ctx.session ?? null;
+    const permissionMap = Object.fromEntries(
+      Array.from(ctx.perms).map((key) => [key, true]),
+    );
+
+    return ctx.session
+      ? { ...ctx.session, hasPermission: permissionMap }
+      : null;
   }),
 
   createAccount: publicProcedure
     .input(accountSchema)
+    .use(requirePermission("UserUseOthers.create"))
     .mutation(async ({ ctx, input }) => {
-      if (!ctx.hasPermission("UserUseOthers.create")) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: TrpcErrorlikeMessages.permission.message,
-        });
-      }
+      if (!ctx.user) return;
 
       const context = await auth.$context;
       input.password = await context.password.hash(input.password);
@@ -89,7 +103,25 @@ export const userAccountRouter = createTRPCRouter({
       }
 
       try {
-        await insertUser(input);
+        const email = await insertUser({ creator: ctx.user?.id, input });
+        if (!email) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Couldn't get users email",
+          });
+        }
+
+        const result = await sendVerificationEmail({
+          email,
+          callbackURL: "/verify-email",
+        });
+
+        if (result.error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error.message,
+          });
+        }
       } catch (err) {
         if (err && err instanceof TRPCError) {
           throw new TRPCError({

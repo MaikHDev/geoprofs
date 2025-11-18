@@ -1,9 +1,5 @@
 import ResetPassword from "~/app/reset-password/reset-password";
 
-export default function ResetPasswordPage() {
-  return (
-    <>
-      <ResetPassword/>
-    </>
-  )
+export default async function ResetPasswordPage() {
+  return <ResetPassword />;
 }

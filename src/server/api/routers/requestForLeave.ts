@@ -41,20 +41,22 @@ export const requestForLeaveRouter = createTRPCRouter({
         .from(requestForLeave)
         .where(
           and(
-            sql`DATE(${requestForLeave.dateLeaveStart})
-              =
-              DATE
-              (
-              ${input.dateLeaveStart}
-              )`,
             sql`DATE(
-              ${requestForLeave.dateLeaveEnd}
-              )
-              =
-              DATE
-              (
-              ${input.dateLeaveEnd}
-              )`,
+            ${requestForLeave.dateLeaveStart}
+            )
+            =
+            DATE
+            (
+            ${input.dateLeaveStart}
+            )`,
+            sql`DATE(
+            ${requestForLeave.dateLeaveEnd}
+            )
+            =
+            DATE
+            (
+            ${input.dateLeaveEnd}
+            )`,
             eq(requestForLeave.userId, ctx.user.id),
           ),
         )
@@ -148,7 +150,7 @@ export const requestForLeaveRouter = createTRPCRouter({
         },
       });
 
-      return result[0] ?? null;
+      return result[0];
     }),
 
   getById: protectedProcedure
@@ -157,7 +159,7 @@ export const requestForLeaveRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const result = await ctx.db
+      const [result] = await ctx.db
         .select()
         .from(requestForLeave)
         .where(
@@ -169,6 +171,6 @@ export const requestForLeaveRouter = createTRPCRouter({
         )
         .limit(1);
 
-      return result[0] ?? null;
+      return result;
     }),
 });
