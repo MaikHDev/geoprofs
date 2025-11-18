@@ -1,11 +1,13 @@
 import z from "zod";
+
 import {
   createTRPCRouter,
   protectedProcedure,
   requirePermission,
 } from "../trpc";
-import { ReasonsForLeave, requestForLeave, user } from "~/server/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
+import { and, eq, sql } from "drizzle-orm";
+import { logAction } from "../../../../utils/log-handle";
 import { TRPCError } from "@trpc/server";
 
 export const requestForLeaveRouter = createTRPCRouter({
@@ -32,8 +34,6 @@ export const requestForLeaveRouter = createTRPCRouter({
         return;
       }
 
-      console.log(input.dateLeaveStart.toLocaleString())
-
       const [existing] = await ctx.db
         .select({
           requestCount: ctx.db.$count(requestForLeave),
@@ -41,26 +41,51 @@ export const requestForLeaveRouter = createTRPCRouter({
         .from(requestForLeave)
         .where(
           and(
-            sql`DATE(${requestForLeave.dateLeaveStart}) = DATE(${input.dateLeaveStart})`,
-            sql`DATE(${requestForLeave.dateLeaveEnd}) = DATE(${input.dateLeaveEnd})`,
+            sql`DATE(${requestForLeave.dateLeaveStart})
+              =
+              DATE
+              (
+              ${input.dateLeaveStart}
+              )`,
+            sql`DATE(
+              ${requestForLeave.dateLeaveEnd}
+              )
+              =
+              DATE
+              (
+              ${input.dateLeaveEnd}
+              )`,
             eq(requestForLeave.userId, ctx.user.id),
           ),
         )
         .limit(1);
 
       if (existing && existing.requestCount > 0) {
-        throw new TRPCError({code: 'CONFLICT', message: "You have already placed a request of leave for that date."})
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "You have already placed a request of leave for that date.",
+        });
       }
 
-      await ctx.db.insert(requestForLeave).values({
+      const newRequest = await ctx.db
+        .insert(requestForLeave)
+        .values({
+          userId: ctx.session.user.id,
+          reasonOfLeave: input.reasonOfLeave,
+          dateLeaveStart: input.dateLeaveStart,
+          dateLeaveEnd: input.dateLeaveEnd,
+          reasoning: input.reasoning,
+        })
+        .returning();
+
+      await logAction({
+        logContext: "leave_requests",
+        logEvent: "created",
         userId: ctx.session.user.id,
-        subject: input.subject,
-        reasonOfLeave: input.reasonOfLeave,
-        dateLeaveStart: input.dateLeaveStart,
-        dateLeaveEnd: input.dateLeaveEnd,
-        reasoning: input.reasoning,
-        feedback: "",
-        reviewer: ctx.session.user.id,
+        details: {
+          context: "leave_requests",
+          after: newRequest[0],
+        },
       });
     }),
 
@@ -104,18 +129,26 @@ export const requestForLeaveRouter = createTRPCRouter({
         .update(requestForLeave)
         .set({
           userId: ctx.session.user.id,
-          subject: input.subject,
           reasonOfLeave: input.reasonOfLeave,
           dateLeaveStart: input.dateLeaveStart,
           dateLeaveEnd: input.dateLeaveEnd,
           reasoning: input.reasoning,
-          feedback: "",
-          reviewer: ctx.session.user.id,
         })
         .where(eq(requestForLeave.id, input.id))
         .returning();
 
-      return newRequest[0];
+      await logAction({
+        logContext: "leave_requests",
+        logEvent: "changed",
+        userId: ctx.session.user.id,
+        details: {
+          context: "leave_requests",
+          before: result[0],
+          after: newRequest[0],
+        },
+      });
+
+      return result[0] ?? null;
     }),
 
   getById: protectedProcedure

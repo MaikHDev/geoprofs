@@ -18,9 +18,29 @@ export default function SignInPage() {
 
     setError(null);
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
+        setError(null);
+
+        if (password.length < 8) {
+            setError("Password must be at least 8 characters");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const result = await signIn(email, password);
+
+            if (!result?.user) {
+                setError("Invalid email or password");
+            }
+
+            if (result?.redirect && result?.url) {
+                router.push(result.url)
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Unknown error");
+        } finally {
+            setLoading(false);
+        }
     }
 
     setLoading(true);

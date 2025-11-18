@@ -1,28 +1,15 @@
-networks:
-  app_network:
-    driver: bridge
+
 
 services:
-  socket:
-    build:
-      context: ./socket
-      dockerfile: Dockerfile
-    ports:
-      - "4000:4000"
-    restart: always
-    networks:
-      - app_network
   db:
     image: postgres:17
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DATABASE}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - app_network
 volumes:
   postgres_data:

@@ -24,7 +24,6 @@ const geist = Geist({
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const posts = await api.post.getAllLatest();
   await api.auth.getMyPermissions.prefetch();
   const session = await getUserSession();
 
@@ -33,7 +32,7 @@ export default async function RootLayout({
       <body>
         <TRPCReactProvider>
           <SessionProvider session={session}>
-            <SocketProvider initialPosts={posts}>
+            <SocketProvider>
               <HydrateClient>
                 <Header />
               </HydrateClient>
