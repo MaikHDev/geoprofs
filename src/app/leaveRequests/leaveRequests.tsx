@@ -1,10 +1,13 @@
 "use client";
 
 import { api } from "~/trpc/react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import ReturnView from "~/app/_components/returnView";
+import {usePermission} from "~/hooks/usePermission";
 
 export default function PendingLeaveRequestsPage() {
+  const { hasPermission } = usePermission();
   const utils = api.useUtils();
   const { data, isLoading } = api.leaveRequest.listPendingRequests.useQuery();
   const router = useRouter();
@@ -56,6 +59,10 @@ export default function PendingLeaveRequestsPage() {
     }
     setIsAllChecked(!isAllChecked);
   };
+
+    if (!isLoading && !hasPermission("LeaveRequest.read")) {
+        return <ReturnView />;
+    }
 
   if (isLoading)
     return (
