@@ -107,7 +107,7 @@ export default function Profile() {
 
       if (!res.ok) throw new Error("Upload failed");
 
-      const data = await res.json();
+      await res.json();
       toast.success("Image uploaded!");
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
@@ -123,8 +123,8 @@ export default function Profile() {
 
   let percent = 0;
 
-  if (profileData?.vacationDays && profileData?.totalVacationDays) {
-    percent = profileData?.vacationDays / profileData?.totalVacationDays;
+  if (profileData?.vacationDaysUsed && profileData?.totalVacationDays) {
+    percent = profileData?.vacationDaysUsed / profileData?.totalVacationDays;
   }
 
   const r = Math.round(255 * percent);
@@ -214,7 +214,7 @@ export default function Profile() {
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Vacation Days Left:</label>
             <span className={`text-[${color}] text-xl`}>
-              {profileData?.vacationDaysUsed
+              {profileData?.vacationDaysUsed && profileData?.totalVacationDays
                 ? profileData?.totalVacationDays - profileData?.vacationDaysUsed
                 : "-"}
             </span>

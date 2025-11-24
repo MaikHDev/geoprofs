@@ -39,7 +39,7 @@ export const profileRouter = createTRPCRouter({
             eq(requestForLeave.status, "approved"),
           ),
         );
-      let vacationDaysUsed: number | null = null;
+      let vacationDaysUsed = 0;
       vacationDays.forEach((day) => {
         const start = new Date(day.dateStart);
         const end = new Date(day.dateEnd);

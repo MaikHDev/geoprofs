@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { mkdir, readdir, stat, unlink, writeFile } from "fs/promises";
 import path from "path";
-import sharp from "sharp";
 import { allowedTypes } from "../../../../utils/allowedFileTypes";
 import { db } from "~/server/db";
 import { user } from "~/server/db/schema";
