@@ -5,15 +5,24 @@ import { allowedTypes } from "../../../../utils/allowedFileTypes";
 import { db } from "~/server/db";
 import { user } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
+import { api } from "~/trpc/server";
 
 export async function POST(req: Request) {
+  const session = await api.userAccount.getUserSession();
+  if (!session?.user) {
+    return NextResponse.json(
+      { error: "There is currently no session!" },
+      { status: 400 },
+    );
+  }
+
+  const userId = session.user.id
   const formData = await req.formData();
   const file = formData.get("file") as File;
-  const userId = formData.get("userId") as string;
 
-  if (!file || !userId) {
+  if (!file) {
     return NextResponse.json(
-      { error: "Missing file or userId" },
+      { error: "Missing file!" },
       { status: 400 },
     );
   }

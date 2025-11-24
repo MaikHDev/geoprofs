@@ -91,7 +91,6 @@ export default function Profile() {
 
     const form = new FormData();
     form.append("file", file);
-    form.append("userId", session.user.id);
 
     try {
       const controller = new AbortController();
