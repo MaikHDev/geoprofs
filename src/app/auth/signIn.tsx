@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "../../../utils/auth-client";
 import { useSessionContext } from "~/app/_components/session-provider";
+import { logAction } from "../../../utils/log-handle";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
@@ -18,14 +19,9 @@ export default function SignInPage() {
 
     setError(null);
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
-
     setLoading(true);
     try {
-      await signIn.email(
+      const { data, error } = await signIn.email(
         {
           email,
           password,
@@ -37,6 +33,22 @@ export default function SignInPage() {
           },
         },
       );
+
+      if (data?.user) {
+        await logAction({
+          logContext: "users",
+          logEvent: "logged_in",
+          userId: data.user.id,
+          details: {
+            context: "users",
+            after: data.user,
+          },
+        });
+      }
+
+      if (error?.message) {
+        setError(error.message);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
@@ -61,7 +73,6 @@ export default function SignInPage() {
             <label className="mb-1 block font-medium">Email</label>
             <input
               type="email"
-              value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
               required
@@ -72,7 +83,6 @@ export default function SignInPage() {
             <label className="mb-1 block font-medium">Password</label>
             <input
               type="password"
-              value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
               required

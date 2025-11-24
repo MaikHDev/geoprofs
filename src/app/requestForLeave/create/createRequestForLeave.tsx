@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { api } from "~/trpc/react";
 import ReturnView from "~/app/_components/returnView";
 import { ReasonsForLeave } from "~/server/db/schema";
 import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
 import { useSessionContext } from "~/app/_components/session-provider";
+import {HasPermission} from "../../../../utils/hasPermission";
 
 export const reasonOfLeaveValues = ReasonsForLeave.enumValues;
 
@@ -14,7 +15,7 @@ export type ReasonOfLeave = (typeof reasonOfLeaveValues)[number];
 
 export default function CreateRequestForLeave() {
   const session = useSessionContext();
-  const hasPermission = session?.hasPermission;
+  const hasPermission = HasPermission(session?.perms);
 
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("leave");
@@ -41,7 +42,7 @@ export default function CreateRequestForLeave() {
     );
   }
 
-  if (!hasPermission?.["LeaveRequest.update"]) {
+  if (!hasPermission("LeaveRequest.update")) {
     return <ReturnView />;
   }
 

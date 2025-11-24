@@ -4,6 +4,7 @@ import { auditTrailRouter } from "~/server/api/routers/audit-trail";
 import { requestForLeaveRouter } from "./routers/requestForLeave";
 import { authRouter } from "~/server/api/routers/auth";
 import { userAccountRouter } from "~/server/api/routers/userAccount";
+import { profileRouter } from "~/server/api/routers/profile";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   leaveRequest: leaveRequestsRouter,
   userAccount: userAccountRouter,
+  profile: profileRouter,
 });
 
 // export type definition of API

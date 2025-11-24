@@ -6,6 +6,7 @@ import React, { useState } from "react";
 import { api } from "~/trpc/react";
 import { toast, ToastContainer } from "react-toastify";
 import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../utils/hasPermission";
 
 type NavItem = {
   label: string;
@@ -18,29 +19,11 @@ export default function Header() {
   const session = useSessionContext();
   const isAuthenticated = !!session?.user;
 
-  const hasPermission = session?.hasPermission;
+  const hasPermission = HasPermission(session?.perms);
 
   const [showConfirmation, setShowConfirmation] = useState(false);
 
-  const Maik = {
-    vacationDays: 30,
-    email: "2512maik@gmail.com",
-    name: "Maik",
-    lastName: "Hendriks",
-    password: "25120625",
-    csn: "1236547582341",
-  };
-
   const createRequest = api.requestForLeave.create.useMutation({
-    onSuccess: () => {
-      toast.success("Successfully called in sick today");
-    },
-    onError: () => {
-      toast.error("You have already called in sick for today!");
-    },
-  });
-
-  const createAccount = api.userAccount.createAccount.useMutation({
     onSuccess: () => {
       toast.success("Successfully called in sick today");
     },
@@ -73,10 +56,6 @@ export default function Header() {
     setShowConfirmation(false);
   };
 
-  const handleAccount = () => {
-    createAccount.mutate(Maik);
-  };
-
   const handleCancel = () => {
     setShowConfirmation(false);
   };
@@ -84,26 +63,20 @@ export default function Header() {
   const navItems: NavItem[] = [
     { label: "Home", href: urls.home },
     {
-      label: "create account",
-      onClick: handleAccount,
-      show: isAuthenticated && hasPermission?.["LeaveRequest.create"],
-    },
-    {
       label: "Make leave request",
       href: urls.requestForLeave,
-      show: isAuthenticated && hasPermission?.["LeaveRequest.create"],
+      show: isAuthenticated && hasPermission("LeaveRequest.create"),
     },
     {
       label: "Call in sick",
       onClick: handleCallInSick,
-      show: isAuthenticated && hasPermission?.["LeaveRequest.create"],
+      show: isAuthenticated && hasPermission("LeaveRequest.create"),
     },
     {
       label: "Leave requests",
       href: urls.leaveRequests,
       show:
-        isAuthenticated &&
-        hasPermission?.["LeaveRequestReviewUseOthers.create"],
+        isAuthenticated && hasPermission("LeaveRequestReviewUseOthers.create"),
     },
     { label: "Login", href: urls.auth, show: !isAuthenticated },
     { label: "Dashboard", href: urls.dashboard, show: isAuthenticated },

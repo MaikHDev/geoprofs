@@ -55,10 +55,16 @@ export const createTRPCContext = async (opts?: { headers?: Headers }) => {
     session: session
       ? {
           ...session,
-          user: { ...session.user, role: userRole?.role },
+          user: {
+            ...session.user,
+            role: userRole?.role,
+            lastName: userRole?.lastName,
+          },
         }
       : null,
-    user: user ? { ...user, role: userRole?.role } : null,
+    user: user
+      ? { ...user, role: userRole?.role, lastName: userRole?.lastName }
+      : null,
     perms,
     hasPermission: (key: PermissionKey) => perms.has(key),
   };

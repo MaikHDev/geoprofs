@@ -1,14 +1,6 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  index,
-  primaryKey,
-  pgEnum,
-  unique,
-} from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm/relations";
-import { type InferSelectModel, sql } from "drizzle-orm";
+import {index, pgEnum, pgTable, primaryKey, text, timestamp, unique,} from "drizzle-orm/pg-core";
+import {relations} from "drizzle-orm/relations";
+import {type InferSelectModel, sql} from "drizzle-orm";
 
 export const Actions = pgEnum("Actions", [
   "create",
@@ -52,6 +44,7 @@ export const user = pgTable("user", (d) => ({
   id: d
     .text("id")
     .primaryKey()
+    .notNull()
     .$defaultFn(() => crypto.randomUUID()),
   name: d.varchar({ length: 100 }).notNull(),
   lastName: d.varchar({ length: 100 }),

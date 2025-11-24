@@ -1,5 +1,6 @@
 import {
   createTRPCRouter,
+  protectedProcedure,
   publicProcedure,
   requirePermission,
 } from "~/server/api/trpc";
@@ -41,7 +42,7 @@ export const insertUser = async ({
       name: input.name,
       lastName: input.lastName ?? null,
       email: input.email,
-      emailVerified: false,
+      emailVerified: input.emailVerified ?? false,
       image: input.image ?? null,
       vacationDays: input.vacationDays ?? null,
     })
@@ -72,25 +73,27 @@ export const insertUser = async ({
 
 export const userAccountRouter = createTRPCRouter({
   getUserSession: publicProcedure.query(({ ctx }) => {
-    const permissionMap = Object.fromEntries(
-      Array.from(ctx.perms).map((key) => [key, true]),
-    );
-
-    return ctx.session
-      ? { ...ctx.session, hasPermission: permissionMap }
-      : null;
+    return ctx.session ? { ...ctx.session, perms: ctx.perms } : null;
   }),
 
-  createAccount: publicProcedure
+  createAccount: protectedProcedure
     .input(accountSchema)
     .use(requirePermission("UserUseOthers.create"))
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
       const context = await auth.$context;
+
+      input.password.trim();
+      if (input.password.length < 8) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Password needs to be atleast 8 characters long!",
+        });
+      }
       input.password = await context.password.hash(input.password);
 
-      const [existingUser] = await db
+      const [existingUser] = await ctx.db
         .selectDistinct()
         .from(user)
         .where(eq(user.email, input.email));
@@ -105,10 +108,7 @@ export const userAccountRouter = createTRPCRouter({
       try {
         const email = await insertUser({ creator: ctx.user?.id, input });
         if (!email) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Couldn't get users email",
-          });
+          throw new Error("Couldn't get users email");
         }
 
         const result = await sendVerificationEmail({
@@ -117,13 +117,10 @@ export const userAccountRouter = createTRPCRouter({
         });
 
         if (result.error) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: result.error.message,
-          });
+          throw new Error(result.error.message);
         }
       } catch (err) {
-        if (err && err instanceof TRPCError) {
+        if (err && err instanceof Error) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: err.message,

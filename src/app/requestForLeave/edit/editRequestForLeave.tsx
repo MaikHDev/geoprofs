@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { api } from "~/trpc/react";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import ReturnView from "~/app/_components/returnView";
 import { useParams } from "next/navigation";
 import {
@@ -12,13 +12,14 @@ import {
 import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
 import ErrorHandler from "~/app/_components/errorHandler";
 import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../../utils/hasPermission";
 
 export default function EditRequestForLeave() {
   const params = useParams();
   const requestId = Number(params.id);
 
   const session = useSessionContext();
-  const hasPermission = session?.hasPermission;
+  const hasPermission = HasPermission(session?.perms);
 
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("leave");
@@ -51,7 +52,7 @@ export default function EditRequestForLeave() {
   const today = formatDate(new Date());
 
   useEffect(() => {
-    if (request && hasPermission?.["LeaveRequest.update"]) {
+    if (request && hasPermission("LeaveRequest.update")) {
       setReasonOfLeave(request.reasonOfLeave);
       setDateLeaveStart(new Date(request.dateLeaveStart));
       setDateLeaveEnd(new Date(request.dateLeaveEnd));
@@ -61,7 +62,7 @@ export default function EditRequestForLeave() {
 
   useEffect(() => {
     if (!request) return;
-    if (!hasPermission?.["LeaveRequest.update"]) return;
+    if (!hasPermission("LeaveRequest.update")) return;
 
     const isSame =
       dateLeaveStart.getDate() === new Date(request.dateLeaveStart).getDate() &&
@@ -105,7 +106,7 @@ export default function EditRequestForLeave() {
     );
   }
 
-  if (!hasPermission?.["LeaveRequest.update"]) {
+  if (!hasPermission("LeaveRequest.update")) {
     return <ReturnView />;
   }
 

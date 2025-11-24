@@ -2,58 +2,35 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import ReturnView from "~/app/_components/returnView";
-import { verifyEmail } from "../../../utils/auth-client";
-import { toast, ToastContainer } from "react-toastify";
-import { useSessionContext } from "~/app/_components/session-provider";
+import { toast } from "react-toastify";
+import ErrorHandler from "~/app/_components/errorHandler";
 
 export default function VerifyEmail() {
   const [error, setError] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
-  const session = useSessionContext();
+  const err = searchParams.get("error");
 
   const router = useRouter();
 
   useEffect(() => {
-    if (!token) {
-      setError("Invalid request, you don't have a token!");
+    if (err) {
+      setError(err);
       return;
     }
 
-    const verify = async () => {
-      const result = await verifyEmail({
-        query: {
-          token,
-        },
-      });
+    toast.success("Please check your email for further instructions!");
 
-      if (result?.data?.status) {
-        toast.success("Successfully verified email!");
-      }
+    setTimeout(() => {
+      router.push("/");
+    }, 1000);
+  }, [err, error, router]);
 
-      if (result?.error) {
-        toast.error(result.error.message);
-      }
-
-      setTimeout(() => {
-        router.push("/");
-      }, 1000);
-    };
-
-    void verify();
-  }, [router, token]);
-
-  if (!session) {
+  if (error) {
     return (
-      <ReturnView
-        returnPath="/auth"
-        returnName="Login"
-        label="You need to be logged in for this action!"
-      />
+      <div className="flex min-h-screen items-center justify-center">
+        <ErrorHandler message={error} />
+      </div>
     );
   }
-
-  return <>{error && <div className="text-xl text-red-500">{error}</div>}</>;
 }

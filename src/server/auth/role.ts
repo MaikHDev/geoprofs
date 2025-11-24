@@ -1,5 +1,5 @@
 import { db } from "~/server/db";
-import { roles, userRoles } from "~/server/db/schema";
+import { roles, user, userRoles } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function getUserRole(userEmail: string) {
@@ -7,11 +7,13 @@ export async function getUserRole(userEmail: string) {
 
   const [userRole] = await db
     .select({
+      lastName: user.lastName,
       role: roles.roleName,
     })
-    .from(userRoles)
+    .from(user)
+    .leftJoin(userRoles, eq(user.email, userRoles.userEmail))
     .leftJoin(roles, eq(userRoles.roleId, roles.id))
-    .where(eq(userRoles.userEmail, userEmail))
+    .where(eq(user.email, userEmail))
     .limit(1);
 
   return userRole;

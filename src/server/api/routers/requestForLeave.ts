@@ -34,35 +34,30 @@ export const requestForLeaveRouter = createTRPCRouter({
         return;
       }
 
-      const [existing] = await ctx.db
-        .select({
-          requestCount: ctx.db.$count(requestForLeave),
-        })
-        .from(requestForLeave)
-        .where(
-          and(
-            sql`DATE(
-            ${requestForLeave.dateLeaveStart}
-            )
-            =
-            DATE
-            (
-            ${input.dateLeaveStart}
-            )`,
-            sql`DATE(
-            ${requestForLeave.dateLeaveEnd}
-            )
-            =
-            DATE
-            (
-            ${input.dateLeaveEnd}
-            )`,
-            eq(requestForLeave.userId, ctx.user.id),
-          ),
-        )
-        .limit(1);
+      const existing = await ctx.db.$count(
+        requestForLeave,
+        and(
+          sql`DATE(
+                ${requestForLeave.dateLeaveStart}
+                )
+                =
+                DATE
+                (
+                ${input.dateLeaveStart}
+                )`,
+          sql`DATE(
+                ${requestForLeave.dateLeaveEnd}
+                )
+                =
+                DATE
+                (
+                ${input.dateLeaveEnd}
+                )`,
+          eq(requestForLeave.userId, ctx.user.id),
+        ),
+      );
 
-      if (existing && existing.requestCount > 0) {
+      if (existing > 0) {
         throw new TRPCError({
           code: "CONFLICT",
           message: "You have already placed a request of leave for that date.",

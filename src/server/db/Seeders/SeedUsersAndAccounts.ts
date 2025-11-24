@@ -8,6 +8,7 @@ export const users: AccountType[] = [
   {
     vacationDays: 30,
     email: "john@email.com",
+    emailVerified: true,
     name: "John",
     lastName: "Doe",
     password: "12345678",
@@ -16,6 +17,7 @@ export const users: AccountType[] = [
   {
     vacationDays: 30,
     email: "klaas@email.com",
+    emailVerified: true,
     name: "Klaas",
     lastName: "Klaassen",
     password: "12345678",
@@ -24,6 +26,7 @@ export const users: AccountType[] = [
   {
     vacationDays: 30,
     email: "piet@email.com",
+    emailVerified: true,
     name: "Piet",
     lastName: "pieters",
     password: "12345678",
@@ -44,7 +47,7 @@ async function createUser(u: AccountType) {
     console.log("A user already exists with that email");
     return;
   }
-  await insertUser({ creator: u.name, input: u });
+  await insertUser({ creator: u.id!, input: u });
 }
 
 export async function seedUsersAndAccounts() {
