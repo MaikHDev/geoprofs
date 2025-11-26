@@ -49,6 +49,7 @@ export const leaveRequestsRouter = createTRPCRouter({
           end: requestForLeave.dateLeaveEnd,
           reasoning: requestForLeave.reasoning,
           feedback: requestForLeave.feedback,
+          reviewer: requestForLeave.reviewer,
           requesterName: user.name,
           requesterEmail: user.email,
         })
@@ -59,9 +60,22 @@ export const leaveRequestsRouter = createTRPCRouter({
             eq(requestForLeave.id, input.id),
             ne(requestForLeave.userId, ctx.user!.id),
           ),
-        );
+        )
+        .limit(1);
 
-      return req ?? null;
+      if (!req) return null;
+
+      if (!req.reviewer) {
+        await ctx.db
+          .update(requestForLeave)
+          .set({
+            reviewer: ctx.user!.id,
+            updatedAt: new Date(),
+          })
+          .where(eq(requestForLeave.id, input.id));
+      }
+
+      return req;
     }),
 
   updateMultipleStatus: protectedProcedure
