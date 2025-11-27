@@ -63,8 +63,12 @@ export const requestForLeaveRouter = createTRPCRouter({
       if (!ctx.user) return;
 
       const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      if (input.dateLeaveStart < today || input.dateLeaveEnd < today) {
+      const start = new Date(input.dateLeaveStart);
+      const end = new Date(input.dateLeaveEnd);
+
+      if (start < today || end < today) {
         throw new Error("Dates cannot be in the past.");
       }
 
