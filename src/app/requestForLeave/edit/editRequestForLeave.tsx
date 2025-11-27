@@ -58,7 +58,7 @@ export default function EditRequestForLeave() {
       setDateLeaveEnd(new Date(request.dateLeaveEnd));
       setReasoning(request.reasoning);
     }
-  }, [hasPermission, loadingPerms, request]);
+  }, [request]);
 
   useEffect(() => {
     if (!request || loadingPerms) return;
@@ -99,7 +99,7 @@ export default function EditRequestForLeave() {
     );
   }
 
-  if (!request && !isLoading) {
+  if (!request && !isLoading && hasPermission("LeaveRequest.update")) {
     return (
       <h1 className="flex min-h-screen items-center justify-center text-3xl text-red-500">
         You are unable edit this leave request

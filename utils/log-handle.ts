@@ -17,7 +17,9 @@ export async function logAction({
   userId: NewLog["userId"];
   details: NewLog["details"];
 }) {
-  if (!userId) return;
+  if (!userId || userId.length < 1) {
+    throw new Error("User id is not valid, can't create a log");
+  }
 
   await db.insert(logs).values({
     userId: userId,
