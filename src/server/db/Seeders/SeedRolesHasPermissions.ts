@@ -22,8 +22,10 @@ export async function seedRolesHasPermissions() {
     "LogDepartments",
   ];
 
+  const excludePermissionsAdmin = ["LeaveRequest"];
+
   const rolePermissionConfig: Record<string, string[]> = {
-    Admin: ["*"],
+    Admin: ["*-LeaveRequest"],
 
     OfficeManager: ["*-logs"],
 
@@ -70,8 +72,10 @@ export async function seedRolesHasPermissions() {
 
     let permissionIds: number[];
 
-    if (perms.includes("*")) {
-      permissionIds = [...permissionMap.values()];
+    if (perms.includes("*-LeaveRequest")) {
+      permissionIds = allPermissions
+        .filter((p) => !excludePermissionsAdmin.includes(p.resource))
+        .map((p) => p.id);
     } else if (perms.includes("*-logs")) {
       permissionIds = allPermissions
         .filter(

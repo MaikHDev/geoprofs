@@ -6,8 +6,10 @@ type UserHasRoles = InferInsertModel<typeof userRoles>;
 
 export async function seedUserHasRoles() {
   const predefinedUserHasRoles: UserHasRoles[] = [
-    { roleId: 1, userEmail: "email1@email.com", assignedAt: new Date() },
-    { roleId: 2, userEmail: "email2@email.com", assignedAt: new Date()  },
+    { roleId: 1, userEmail: "admin@email.com", assignedAt: new Date() },
+    { roleId: 2, userEmail: "officemanager@email.com", assignedAt: new Date() },
+    { roleId: 3, userEmail: "manager@email.com", assignedAt: new Date() },
+    { roleId: 4, userEmail: "employee@email.com", assignedAt: new Date() },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where
