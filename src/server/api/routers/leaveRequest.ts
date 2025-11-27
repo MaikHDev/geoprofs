@@ -4,13 +4,16 @@ import {
   requirePermission,
 } from "../trpc";
 import { requestForLeave, user } from "~/server/db/schema";
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, gte, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
 
 export const leaveRequestsRouter = createTRPCRouter({
   listPendingRequests: protectedProcedure
     .use(requirePermission("LeaveRequest.read"))
     .query(async ({ ctx }) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       return ctx.db
         .select({
           id: requestForLeave.id,
@@ -30,6 +33,7 @@ export const leaveRequestsRouter = createTRPCRouter({
           and(
             eq(requestForLeave.status, "pending"),
             ne(requestForLeave.userId, ctx.user!.id),
+            gte(requestForLeave.dateLeaveEnd, today),
           ),
         )
         .orderBy(requestForLeave.createdAt);
@@ -39,6 +43,9 @@ export const leaveRequestsRouter = createTRPCRouter({
     .use(requirePermission("LeaveRequest.read"))
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       const [req] = await ctx.db
         .select({
           id: requestForLeave.id,
@@ -59,6 +66,7 @@ export const leaveRequestsRouter = createTRPCRouter({
           and(
             eq(requestForLeave.id, input.id),
             ne(requestForLeave.userId, ctx.user!.id),
+            gte(requestForLeave.dateLeaveEnd, today),
           ),
         )
         .limit(1);
@@ -87,6 +95,9 @@ export const leaveRequestsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       await ctx.db
         .update(requestForLeave)
         .set({
@@ -98,6 +109,7 @@ export const leaveRequestsRouter = createTRPCRouter({
           and(
             inArray(requestForLeave.id, input.ids),
             ne(requestForLeave.userId, ctx.user!.id),
+            gte(requestForLeave.dateLeaveEnd, today),
           ),
         );
     }),
@@ -111,6 +123,9 @@ export const leaveRequestsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       const [existing] = await ctx.db
         .select({ status: requestForLeave.status })
         .from(requestForLeave)
@@ -118,6 +133,7 @@ export const leaveRequestsRouter = createTRPCRouter({
           and(
             eq(requestForLeave.id, input.id),
             ne(requestForLeave.userId, ctx.user!.id),
+            gte(requestForLeave.dateLeaveEnd, today),
           ),
         );
 
@@ -137,6 +153,7 @@ export const leaveRequestsRouter = createTRPCRouter({
           and(
             eq(requestForLeave.id, input.id),
             ne(requestForLeave.userId, ctx.user!.id),
+            gte(requestForLeave.dateLeaveEnd, today),
           ),
         );
     }),

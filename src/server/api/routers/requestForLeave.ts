@@ -22,13 +22,14 @@ export const requestForLeaveRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const date = new Date();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      if (
-        input.dateLeaveStart.getDay() < date.getDay() ||
-        input.dateLeaveEnd.getDay() < date.getDay()
-      ) {
-        return;
+      const start = new Date(input.dateLeaveStart);
+      const end = new Date(input.dateLeaveEnd);
+
+      if (start < today || end < today) {
+        throw new Error("Dates cannot be in the past.");
       }
 
       const newRequest = await ctx.db
