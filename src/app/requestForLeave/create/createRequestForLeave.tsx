@@ -42,7 +42,7 @@ export default function CreateRequestForLeave() {
     );
   }
 
-  if (!isLoading && !hasPermission("LeaveRequest.update")) {
+  if (!isLoading && !hasPermission("LeaveRequest.create")) {
     return <ReturnView />;
   }
 

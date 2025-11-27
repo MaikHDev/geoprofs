@@ -17,6 +17,8 @@ export async function logAction({
   userId: NewLog["userId"];
   details: NewLog["details"];
 }) {
+  if (!userId) return;
+
   await db.insert(logs).values({
     userId: userId,
     logEvent: logEvent,

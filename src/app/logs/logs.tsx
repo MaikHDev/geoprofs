@@ -306,40 +306,54 @@ export default function LogsPage() {
         </div>
       )}
 
-
-
       {logView === "logs" && (
         <div className="space-y-4">
           <div className="mb-4 grid grid-cols-4 gap-4">
-            <input
-              type="datetime-local"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="rounded border p-2"
-              placeholder="Start Date"
-            />
-            <input
-              type="datetime-local"
-              value={endDate}
-              min={startDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="rounded border p-2"
-              placeholder="End Date"
-            />
-            <input
-              type="text"
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              className="rounded border p-2"
-              placeholder="User"
-            />
-            <button
-              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-              className="rounded border bg-white p-2 font-medium shadow transition hover:bg-gray-50"
-            >
-              Sort: {sortOrder === "asc" ? "Oldest First ↑" : "Newest First ↓"}
-            </button>
+            <div className="flex flex-col text-center">
+              <small className="mb-1 text-gray-500">Filter date from</small>
+              <input
+                type="datetime-local"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="h-12 rounded border p-2"
+              />
+            </div>
+
+            <div className="flex flex-col text-center">
+              <small className="mb-1 text-gray-500">Filter date to</small>
+              <input
+                type="datetime-local"
+                value={endDate}
+                min={startDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="h-12 rounded border p-2"
+              />
+            </div>
+
+            <div className="flex flex-col text-center">
+              <small className="mb-1 text-gray-500">Username/Email</small>
+              <input
+                type="text"
+                value={selectedUser}
+                onChange={(e) => setSelectedUser(e.target.value)}
+                className="h-12 rounded border p-2"
+                placeholder="User"
+              />
+            </div>
+
+            <div className="flex flex-col text-center">
+              <small className="mb-1 text-gray-500">Sort</small>
+              <button
+                onClick={() =>
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
+                }
+                className="h-12 rounded border bg-white p-2 font-medium shadow transition hover:bg-gray-50"
+              >
+                {sortOrder === "asc" ? "Oldest First ↑" : "Newest First ↓"}
+              </button>
+            </div>
           </div>
+
           {(startDate || endDate || selectedUser) && (
             <button
               onClick={() => {

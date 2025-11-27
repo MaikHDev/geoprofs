@@ -31,7 +31,11 @@ export default function EditRequestForLeave() {
 
   const utils = api.useUtils();
 
-  const { data: request, isLoading, error: requestError } = api.requestForLeave.getById.useQuery({
+  const {
+    data: request,
+    isLoading,
+    error: requestError,
+  } = api.requestForLeave.getById.useQuery({
     id: requestId,
   });
   const updateRequest = api.requestForLeave.update.useMutation({
@@ -54,7 +58,7 @@ export default function EditRequestForLeave() {
       setDateLeaveEnd(new Date(request.dateLeaveEnd));
       setReasoning(request.reasoning);
     }
-  }, [request]);
+  }, [hasPermission, loadingPerms, request]);
 
   useEffect(() => {
     if (!request || loadingPerms) return;
@@ -67,7 +71,15 @@ export default function EditRequestForLeave() {
       reasoning === request.reasoning;
 
     setDisabledForm(isSame);
-  }, [dateLeaveStart, dateLeaveEnd, reasonOfLeave, reasoning]);
+  }, [
+    dateLeaveStart,
+    dateLeaveEnd,
+    reasonOfLeave,
+    reasoning,
+    request,
+    loadingPerms,
+    hasPermission,
+  ]);
 
   if (!isLoadingSession && !session) {
     return (
@@ -78,8 +90,13 @@ export default function EditRequestForLeave() {
       />
     );
   }
-  if (requestError?.data) {
-    return <ErrorHandler code={requestError.data.code} message={requestError.message} />;
+  if (hasPermission("LeaveRequest.update") && requestError?.data) {
+    return (
+      <ErrorHandler
+        code={requestError.data.code}
+        message={requestError.message}
+      />
+    );
   }
 
   if (!request && !isLoading) {
