@@ -113,7 +113,6 @@ export const userRolesRelations = relations(userRoles, ({one}) => ({
 
 export const permissions = pgTable("permissions", (d) => ({
     id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({length: 30}).notNull().unique(),
     resource: d.varchar({length: 30}).notNull(),
     action: Actions("action").notNull(),
     description: d.text(),
