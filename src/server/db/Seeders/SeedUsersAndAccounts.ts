@@ -10,9 +10,10 @@ interface User {
 
 export async function seedUsersAndAccounts() {
   const users: User[] = [
-    { email: "email1@email.com", name: "User 1", password: "12345678" },
-    { email: "email2@email.com", name: "User 2", password: "12345678" },
-    { email: "email3@email.com", name: "User 3", password: "12345678" },
+    { email: "admin@email.com", name: "User 1", password: "12345678" },
+    { email: "officemanager@email.com", name: "User 2", password: "12345678" },
+    { email: "manager@email.com", name: "User 3", password: "12345678" },
+    { email: "employee@email.com", name: "User 4", password: "12345678" },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where
