@@ -7,25 +7,33 @@ import { eq } from "drizzle-orm";
 export const users: AccountType[] = [
   {
     vacationDays: 30,
-    email: "john@email.com",
-    name: "John",
-    lastName: "Doe",
+    email: "admin@email.com",
+    name: "Admin",
+    lastName: "Account",
     password: "12345678",
     csn: "1236547582341",
   },
   {
     vacationDays: 30,
-    email: "klaas@email.com",
-    name: "Klaas",
-    lastName: "Klaassen",
+    email: "officemanager@email.com",
+    name: "Office Manager",
+    lastName: "Account",
     password: "12345678",
     csn: "1236547582341",
   },
   {
     vacationDays: 30,
-    email: "piet@email.com",
-    name: "Piet",
-    lastName: "pieters",
+    email: "manager@email.com",
+    name: "Manager",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+  },
+  {
+    vacationDays: 30,
+    email: "employee@email.com",
+    name: "Employee",
+    lastName: "Account",
     password: "12345678",
     csn: "1236547582341",
   },
@@ -48,13 +56,6 @@ async function createUser(u: AccountType) {
 }
 
 export async function seedUsersAndAccounts() {
-  const users: User[] = [
-    { email: "admin@email.com", name: "User 1", password: "12345678" },
-    { email: "officemanager@email.com", name: "User 2", password: "12345678" },
-    { email: "manager@email.com", name: "User 3", password: "12345678" },
-    { email: "employee@email.com", name: "User 4", password: "12345678" },
-  ];
-
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(user);
   // eslint-disable-next-line drizzle/enforce-delete-with-where
