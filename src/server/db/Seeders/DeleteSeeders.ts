@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 
 export async function seedDelete() {
   await db.execute(sql`
-    TRUNCATE TABLE 
+    TRUNCATE TABLE
       "rolePermissions",
       "userRoles",
       "userDepartments",
