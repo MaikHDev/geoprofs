@@ -1,10 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
+import ReturnView from "~/app/_components/returnView";
+import { usePermission } from "~/hooks/usePermission";
 
 export default function LeaveRequestDetailsPage() {
+  const { hasPermission } = usePermission();
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const { data, isLoading } = api.leaveRequest.getById.useQuery({
@@ -48,6 +51,10 @@ export default function LeaveRequestDetailsPage() {
     if (!selectedStatus || isLocked) return;
     updateStatusMutation.mutate({ id: Number(id), status: selectedStatus });
   };
+
+  if (!isLoading && !hasPermission("LeaveRequestUseOthers.read")) {
+    return <ReturnView />;
+  }
 
   return (
     <div className="flex justify-center px-4 py-10">

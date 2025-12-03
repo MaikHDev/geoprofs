@@ -9,7 +9,7 @@ import { z } from "zod";
 
 export const leaveRequestsRouter = createTRPCRouter({
   listPendingRequests: protectedProcedure
-    .use(requirePermission("LeaveRequest.read"))
+    .use(requirePermission("LeaveRequestUseOthers.read"))
     .query(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -40,7 +40,7 @@ export const leaveRequestsRouter = createTRPCRouter({
     }),
 
   getById: protectedProcedure
-    .use(requirePermission("LeaveRequest.read"))
+    .use(requirePermission("LeaveRequestUseOthers.read"))
     .input(z.object({ id: z.number() }))
     .query(async ({ ctx, input }) => {
       const today = new Date();

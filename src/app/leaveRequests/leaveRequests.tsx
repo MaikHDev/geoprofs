@@ -60,7 +60,7 @@ export default function PendingLeaveRequestsPage() {
     setIsAllChecked(!isAllChecked);
   };
 
-    if (!isLoading && !hasPermission("LeaveRequest.read")) {
+    if (!isLoading && !hasPermission("LeaveRequestUseOthers.read")) {
         return <ReturnView />;
     }
 
