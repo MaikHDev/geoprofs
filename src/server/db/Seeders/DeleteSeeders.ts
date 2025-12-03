@@ -7,7 +7,6 @@ export async function seedDelete() {
       "rolePermissions",
       "userRoles",
       "userDepartments",
-      "usersTimeOff",
       "requestForLeave",
       "session",
       "account",
@@ -16,7 +15,7 @@ export async function seedDelete() {
       "roles",
       "departments",
       "verification",
-      "post"
+      "logs"
     RESTART IDENTITY CASCADE;
   `);
 
