@@ -48,6 +48,13 @@ async function createUser(u: AccountType) {
 }
 
 export async function seedUsersAndAccounts() {
+  const users: User[] = [
+    { email: "admin@email.com", name: "User 1", password: "12345678" },
+    { email: "officemanager@email.com", name: "User 2", password: "12345678" },
+    { email: "manager@email.com", name: "User 3", password: "12345678" },
+    { email: "employee@email.com", name: "User 4", password: "12345678" },
+  ];
+
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(user);
   // eslint-disable-next-line drizzle/enforce-delete-with-where
