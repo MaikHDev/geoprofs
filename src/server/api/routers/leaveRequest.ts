@@ -4,7 +4,7 @@ import {
   requirePermission,
 } from "../trpc";
 import { requestForLeave, user } from "~/server/db/schema";
-import { eq, lte, not } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 export const leaveRequestsRouter = createTRPCRouter({
@@ -85,7 +85,6 @@ export const leaveRequestsRouter = createTRPCRouter({
   viewStatus: protectedProcedure
     .use(requirePermission("LeaveRequest.read"))
     .query(({ ctx }) => {
-      const date = new Date();
       return ctx.db.query.requestForLeave.findMany({
         columns: {
           id: true,
@@ -93,9 +92,10 @@ export const leaveRequestsRouter = createTRPCRouter({
           dateLeaveEnd: true,
           status: true,
           reasonOfLeave: true,
+          reasoning: true,
           createdAt: true,
         },
-        where: (r) => not(lte(r.dateLeaveStart, date)), 
+        orderBy: (r) => asc(r.status),
       });
     }),
 });

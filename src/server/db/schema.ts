@@ -18,9 +18,9 @@ export const ReasonsForLeave = pgEnum("ReasonsForLeave", [
 
 export const Statuses = pgEnum("Statuses", [
     "pending",
-    "approved",
     "renewal",
     "denied",
+    "approved",
 ]);
 
 export const posts = pgTable(
