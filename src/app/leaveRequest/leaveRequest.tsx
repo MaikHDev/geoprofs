@@ -52,7 +52,7 @@ export default function LeaveRequestDetailsPage() {
     updateStatusMutation.mutate({ id: Number(id), status: selectedStatus });
   };
 
-  if (!isLoading && !hasPermission("LeaveRequestUseOthers.read")) {
+  if (!isLoading && !hasPermission("LeaveRequestUseOthers.read") && !hasPermission("LeaveRequestReviewUseOthers.create")) {
     return <ReturnView />;
   }
 
