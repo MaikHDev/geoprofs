@@ -1,13 +1,18 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { api } from "~/trpc/react";
+import ReturnView from "~/app/_components/returnView";
+import { usePermission } from "~/hooks/usePermission";
 
 export default function LeaveRequestDetailsPage() {
+  const { hasPermission } = usePermission();
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const { data, isLoading } = api.leaveRequest.getById.useQuery({ id: Number(id) });
+  const { data, isLoading } = api.leaveRequest.getById.useQuery({
+    id: Number(id),
+  });
   const utils = api.useUtils();
 
   const updateStatusMutation = api.leaveRequest.updateStatus.useMutation({
@@ -17,7 +22,9 @@ export default function LeaveRequestDetailsPage() {
     },
   });
 
-  const [selectedStatus, setSelectedStatus] = useState<"approved" | "denied" | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<
+    "approved" | "denied" | null
+  >(null);
 
   useEffect(() => {
     if (data?.status === "approved" || data?.status === "denied") {
@@ -25,8 +32,18 @@ export default function LeaveRequestDetailsPage() {
     }
   }, [data?.status]);
 
-  if (isLoading) return <div>Loading...</div>;
-  if (!data) return <div>Request not found.</div>;
+  if (isLoading)
+    return (
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        Loading...
+      </div>
+    );
+  if (!data)
+    return (
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        Request not found.
+      </div>
+    );
 
   const isLocked = data.status === "approved" || data.status === "denied";
 
@@ -35,52 +52,106 @@ export default function LeaveRequestDetailsPage() {
     updateStatusMutation.mutate({ id: Number(id), status: selectedStatus });
   };
 
+  if (!isLoading && !hasPermission("LeaveRequestUseOthers.read") && !hasPermission("LeaveRequestReviewUseOthers.create")) {
+    return <ReturnView />;
+  }
+
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold">{data.subject}</h1>
-      <p><strong>Requester:</strong> {data.requesterName} ({data.requesterEmail})</p>
-      <p><strong>Reason:</strong> {data.reason}</p>
-      <p><strong>Status:</strong> {data.status}</p>
-      <p><strong>From:</strong> {new Date(data.start).toLocaleDateString()}</p>
-      <p><strong>To:</strong> {new Date(data.end).toLocaleDateString()}</p>
-      <p><strong>Reasoning:</strong> {data.reasoning}</p>
+    <div className="flex justify-center px-4 py-10">
+      <div className="w-full max-w-2xl rounded-xl border border-gray-100 bg-white p-8 shadow-md">
+        <h1 className="mb-6 text-2xl font-semibold text-[#007379]">
+          {data.subject}
+        </h1>
 
-      {isLocked ? (
-        <div className="mt-6 text-gray-800 italic">
-          This request has already been {data.status} and can no longer be modified.
-        </div>
-      ) : (
-        <>
-          <div className="flex gap-4 mt-6">
-            <button
-              className={`px-4 py-2 rounded text-white ${
-                selectedStatus === "approved" ? "bg-green-600" : "bg-green-500/50"
+        <div className="space-y-3 text-gray-700">
+          <p>
+            <strong className="font-medium text-gray-900">Requester:</strong>{" "}
+            {data.requesterName} ({data.requesterEmail})
+          </p>
+          <p>
+            <strong className="font-medium text-gray-900">Reason:</strong>{" "}
+            {data.reason}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-900">Status:</strong>{" "}
+            <span
+              className={`rounded px-2 py-1 text-sm ${
+                data.status === "approved"
+                  ? "bg-green-100 text-green-800"
+                  : data.status === "denied"
+                    ? "bg-red-100 text-red-800"
+                    : "bg-gray-100 text-gray-700"
               }`}
-              onClick={() => setSelectedStatus("approved")}
-              disabled={isLocked}>
-              Approve
-            </button>
-            <button
-              className={`px-4 py-2 rounded text-white ${
-                selectedStatus === "denied" ? "bg-red-600" : "bg-red-500/50"
-              }`}
-              onClick={() => setSelectedStatus("denied")}
-              disabled={isLocked}>
-              Deny
-            </button>
-          </div>
-
-          <div className="mt-6">
-            <button
-              disabled={!selectedStatus || updateStatusMutation.isPending || isLocked}
-              onClick={handleSave}
-              className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
             >
-              {updateStatusMutation.isPending ? "Saving..." : "Save"}
-            </button>
+              {data.status}
+            </span>
+          </p>
+          <p>
+            <strong className="font-medium text-gray-900">From:</strong>{" "}
+            {new Date(data.start).toLocaleDateString()}
+          </p>
+          <p>
+            <strong className="font-medium text-gray-900">To:</strong>{" "}
+            {new Date(data.end).toLocaleDateString()}
+          </p>
+          {data.reasoning && (
+            <p>
+              <strong className="font-medium text-gray-900">Reasoning:</strong>{" "}
+              {data.reasoning}
+            </p>
+          )}
+        </div>
+
+        {isLocked ? (
+          <div className="mt-8 border-t border-gray-100 pt-6 text-gray-600 italic">
+            This request has already been <strong>{data.status}</strong> and can
+            no longer be modified.
           </div>
-        </>
-      )}
+        ) : (
+          <>
+            <div className="mt-8 flex gap-4">
+              <button
+                className={`flex-1 rounded-lg px-4 py-3 font-medium text-white transition ${
+                  selectedStatus === "approved"
+                    ? "bg-[#007379]"
+                    : "cursor-pointer bg-[#00888F] hover:bg-[#007379]"
+                }`}
+                onClick={() => setSelectedStatus("approved")}
+                disabled={isLocked}
+              >
+                Approve
+              </button>
+              <button
+                className={`flex-1 rounded-lg px-4 py-3 font-medium text-white transition ${
+                  selectedStatus === "denied"
+                    ? "bg-red-600"
+                    : "cursor-pointer bg-red-500 hover:bg-red-600"
+                }`}
+                onClick={() => setSelectedStatus("denied")}
+                disabled={isLocked}
+              >
+                Deny
+              </button>
+            </div>
+
+            <div className="mt-8 flex justify-end">
+              <button
+                disabled={
+                  !selectedStatus || updateStatusMutation.isPending || isLocked
+                }
+                onClick={handleSave}
+                className={`rounded-lg px-6 py-3 font-semibold text-white transition ${
+                  !selectedStatus || isLocked
+                    ? "cursor-not-allowed bg-[#CCCCCC]"
+                    : "cursor-pointer bg-[#00888F] hover:bg-[#007379]"
+                } ${updateStatusMutation.isPending ? "opacity-70" : ""} `}
+              >
+                {updateStatusMutation.isPending ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
