@@ -32,8 +32,8 @@ export default function PendingLeaveRequestsPage() {
           </p>
 
           <p className="text-sm font-medium">
-            {new Date(request.start).toLocaleDateString()} →{" "}
-            {new Date(request.end).toLocaleDateString()}
+            {new Date(request.start).toLocaleDateString("nl-NL")} →{" "}
+            {new Date(request.end).toLocaleDateString("nl-NL")}
           </p>
 
           {request.reason && (
@@ -41,7 +41,7 @@ export default function PendingLeaveRequestsPage() {
           )}
 
           <p className="text-xs text-gray-500 mt-3">
-            Submitted {new Date(request.createdAt).toLocaleString()}
+            Submitted {new Date(request.createdAt).toLocaleString("nl-NL")}
           </p>
         </Link>
       ))}
