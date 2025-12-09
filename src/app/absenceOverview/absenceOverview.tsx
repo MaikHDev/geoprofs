@@ -5,6 +5,8 @@ import Link from "next/link";
 
 export default function PendingLeaveRequestsPage() {
   const { data: requests, isLoading } = api.leaveRequest.listPendingRequests.useQuery();
+  const { data: requestDetails } = api.leaveRequest.getById.useQuery({ id: 1 });
+  console.log(requestDetails);
 
   if (isLoading) return <p className="text-center py-12">Aan het laden...</p>;
   if (!requests?.length)

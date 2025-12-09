@@ -28,7 +28,7 @@ export const leaveRequestsRouter = createTRPCRouter({
     }),
 
   getById: protectedProcedure
-    .use(requirePermission("leaveRequest.read"))
+    .use(requirePermission("LeaveRequest.read"))
     .input(z.object({ id: z.number() }))
     .query(async ({ctx, input }) => {
       const [req] = await ctx.db
