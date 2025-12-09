@@ -42,4 +42,9 @@
 - ##### delete
 - ###### all
 
+# tests
+
+### To run the tests, use the following command:
+- bun run test
+
 
