@@ -3,19 +3,11 @@ networks:
     driver: bridge
 
 services:
-  socket:
-    build:
-      context: ./socket
-      dockerfile: Dockerfile
-    ports:
-      - "4000:4000"
-    restart: always
-    networks:
-      - app_network
+
   db:
     image: postgres:17
     ports:
-      - "5432:5432"
+      - "5432:54432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

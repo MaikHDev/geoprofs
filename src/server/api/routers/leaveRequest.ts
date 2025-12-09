@@ -6,7 +6,7 @@ import { z } from "zod";
 export const leaveRequestsRouter = createTRPCRouter({
 
   listPendingRequests: protectedProcedure
-    .use(requirePermission("leaveRequest.read"))
+    .use(requirePermission("LeaveRequest.read"))
     .query(async ({ ctx }) => {
 
     return ctx.db
