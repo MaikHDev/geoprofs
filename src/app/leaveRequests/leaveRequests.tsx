@@ -6,13 +6,13 @@ import Link from "next/link";
 export default function PendingLeaveRequestsPage() {
   const { data: requests, isLoading } = api.leaveRequest.listPendingRequests.useQuery();
 
-  if (isLoading) return <p className="text-center py-12">Loading...</p>;
+  if (isLoading) return <p className="text-center py-12">Aan het laden...</p>;
   if (!requests?.length)
-    return <p className="text-center py-12 text-gray-500">No pending leave requests</p>;
+    return <p className="text-center py-12 text-gray-500">Geen aankomende verlofdagen</p>;
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-bold text-gray-800">Pending Leave Requests</h1>
+      <h1 className="text-2xl font-bold text-gray-800">Aankomende verlofdagen</h1>
 
       {requests.map((request) => (
         <Link
@@ -23,7 +23,7 @@ export default function PendingLeaveRequestsPage() {
           <div className="flex justify-between items-start mb-2">
             <strong className="text-lg">{request.subject}</strong>
             <span className="px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
-              Pending
+              Onbehandeld
             </span>
           </div>
 
@@ -41,7 +41,7 @@ export default function PendingLeaveRequestsPage() {
           )}
 
           <p className="text-xs text-gray-500 mt-3">
-            Submitted {new Date(request.createdAt).toLocaleString("nl-NL")}
+            Aangevraagd op {new Date(request.createdAt).toLocaleString("nl-NL")}
           </p>
         </Link>
       ))}
