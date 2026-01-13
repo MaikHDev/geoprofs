@@ -9,11 +9,12 @@ export default function LeaveRequestView() {
   const { data } = api.leaveRequest.viewStatus.useQuery();
 
   const [statusFilter, setStatusFilter] = useState("all");
+  const [reasonFilter, setReasonFilter] = useState("all");
 
   if (!data) return null;
 
   const statusColorMap: Record<
-    "pending" | "renewal" | "denied"| "approved" ,
+    "pending" | "renewal" | "denied" | "approved",
     string
   > = {
     pending: "bg-yellow-100 text-yellow-800",
@@ -22,20 +23,42 @@ export default function LeaveRequestView() {
     approved: "bg-green-100 text-green-800",
   };
 
-  const filteredData =
-    statusFilter === "all"
-      ? data
-      : data.filter((req) => req.status === statusFilter);
+  const uniqueReasons = Array.from(
+    new Set(data.map((req) => req.reasonOfLeave))
+  );
+
+  const filteredData = data.filter((req) => {
+    const statusMatch =
+      statusFilter === "all" || req.status === statusFilter;
+
+    const reasonMatch =
+      reasonFilter === "all" || req.reasonOfLeave === reasonFilter;
+
+    return statusMatch && reasonMatch;
+  });
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-3">
+        <select
+          value={reasonFilter}
+          onChange={(e) => setReasonFilter(e.target.value)}
+          className="border rounded px-3 py-2"
+        >
+          <option value="all">All Reasons</option>
+          {uniqueReasons.map((reason) => (
+            <option key={reason} value={reason}>
+              {reason}
+            </option>
+          ))}
+        </select>
+
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="border rounded px-3 py-2"
         >
-          <option value="all">All</option>
+          <option value="all">All Status</option>
           <option value="pending">Pending</option>
           <option value="approved">Approved</option>
           <option value="renewal">Renewal</option>
@@ -56,31 +79,50 @@ export default function LeaveRequestView() {
           </thead>
 
           <tbody>
-            {filteredData.map((req) => (
-              <tr
-                key={req.id}
-                onClick={() => {
-                  if (req.status === "pending") {
-                    router.push(`/requestForLeave/edit/${req.id}`);
-                  }
-                }}
-                className={`${req.status === "pending" ? " cursor-pointer hover:bg-gray-50 " : ""} bg-white transition`}
-              >
-                <td className="border px-4 py-3">{req.reasonOfLeave}</td>
-                <td className="border px-4 py-3">
-                  {req.dateLeaveStart.toLocaleDateString()}
-                </td>
-                <td className="border px-4 py-3">
-                  {req.dateLeaveEnd.toLocaleDateString()}
-                </td>
-                <td className="border px-4 py-3">{req.reasoning}</td>
+            {filteredData.length === 0 ? (
+              <tr>
                 <td
-                  className={`rounded border px-4 py-3 font-semibold ${statusColorMap[req.status]}`}
+                  colSpan={5}
+                  className="border px-4 py-6 text-center text-gray-500"
                 >
-                  {req.status}
+                  No requests are found
                 </td>
               </tr>
-            ))}
+            ) : (
+              filteredData.map((req) => (
+                <tr
+                  key={req.id}
+                  onClick={() => {
+                    if (req.status === "pending") {
+                      router.push(`/requestForLeave/edit/${req.id}`);
+                    }
+                  }}
+                  className={`${
+                    req.status === "pending"
+                      ? "cursor-pointer hover:bg-gray-50"
+                      : ""
+                  } bg-white transition`}
+                >
+                  <td className="border px-4 py-3">
+                    {req.reasonOfLeave}
+                  </td>
+                  <td className="border px-4 py-3">
+                    {req.dateLeaveStart.toLocaleDateString()}
+                  </td>
+                  <td className="border px-4 py-3">
+                    {req.dateLeaveEnd.toLocaleDateString()}
+                  </td>
+                  <td className="border px-4 py-3">
+                    {req.reasoning}
+                  </td>
+                  <td
+                    className={`border px-4 py-3 font-semibold ${statusColorMap[req.status]}`}
+                  >
+                    {req.status}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
