@@ -33,7 +33,7 @@ export default function CreateRequestForLeave() {
 
   const today = formatDate(new Date());
 
-  if (!isLoading && !hasPermission("LeaveRequest.update")) {
+  if (!isLoading && !hasPermission("LeaveRequest.create")) {
     return <ReturnView />;
   }
 

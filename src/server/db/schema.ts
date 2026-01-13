@@ -219,7 +219,7 @@ export const requestForLeave = pgTable("requestForLeave", (d) => ({
     dateLeaveEnd: d.timestamp().notNull(),
     reasoning: d.text().notNull(),
     feedback: d.text(),
-    reviewer: d.text().notNull().references(() => user.id),
+    reviewer: d.text(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
         .defaultNow()

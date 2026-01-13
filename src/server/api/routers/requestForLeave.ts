@@ -5,7 +5,7 @@ import {
   requirePermission,
 } from "../trpc";
 import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
-import { eq, and } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 export const requestForLeaveRouter = createTRPCRouter({
   create: protectedProcedure
@@ -22,13 +22,14 @@ export const requestForLeaveRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const date = new Date();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      if (
-        input.dateLeaveStart.getDay() < date.getDay() ||
-        input.dateLeaveEnd.getDay() < date.getDay()
-      ) {
-        return;
+      const start = new Date(input.dateLeaveStart);
+      const end = new Date(input.dateLeaveEnd);
+
+      if (start < today || end < today) {
+        throw new Error("Dates cannot be in the past.");
       }
 
       const newRequest = await ctx.db
@@ -41,7 +42,6 @@ export const requestForLeaveRouter = createTRPCRouter({
           dateLeaveEnd: input.dateLeaveEnd,
           reasoning: input.reasoning,
           feedback: "",
-          reviewer: ctx.session.user.id,
         })
         .returning();
 
@@ -62,14 +62,60 @@ export const requestForLeaveRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
-      const date = new Date();
 
-      if (
-        input.dateLeaveStart.getDay() < date.getDay() ||
-        input.dateLeaveEnd.getDay() < date.getDay()
-      ) {
-        return;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const start = new Date(input.dateLeaveStart);
+      const end = new Date(input.dateLeaveEnd);
+
+      if (start < today || end < today) {
+        throw new Error("Dates cannot be in the past.");
       }
+
+      const [existing] = await ctx.db
+        .select()
+        .from(requestForLeave)
+        .where(
+          and(
+            eq(requestForLeave.id, input.id),
+            eq(requestForLeave.userId, ctx.user.id),
+            eq(requestForLeave.status, "pending"),
+            isNull(requestForLeave.reviewer),
+          ),
+        )
+        .limit(1);
+
+      if (!existing) {
+        throw new Error(
+          "You can no longer modify this request because it is being reviewed or already handled.",
+        );
+      }
+
+      const [newRequest] = await ctx.db
+        .update(requestForLeave)
+        .set({
+          userId: ctx.session.user.id,
+          subject: input.subject,
+          reasonOfLeave: input.reasonOfLeave,
+          dateLeaveStart: input.dateLeaveStart,
+          dateLeaveEnd: input.dateLeaveEnd,
+          reasoning: input.reasoning,
+          feedback: "",
+          updatedAt: new Date(),
+        })
+        .where(eq(requestForLeave.id, input.id))
+        .returning();
+
+      return newRequest;
+    }),
+
+  getById: protectedProcedure
+    .use(requirePermission("LeaveRequest.read"))
+    .input(z.object({ id: z.number() }))
+    .query(async ({ ctx, input }) => {
+      if (!ctx.user) return;
+
       const result = await ctx.db
         .select()
         .from(requestForLeave)
@@ -82,44 +128,6 @@ export const requestForLeaveRouter = createTRPCRouter({
         )
         .limit(1);
 
-      if (!result) return;
-
-      const newRequest = await ctx.db
-        .update(requestForLeave)
-        .set({
-          userId: ctx.session.user.id,
-          subject: input.subject,
-          reasonOfLeave: input.reasonOfLeave,
-          dateLeaveStart: input.dateLeaveStart,
-          dateLeaveEnd: input.dateLeaveEnd,
-          reasoning: input.reasoning,
-          feedback: "",
-          reviewer: ctx.session.user.id,
-        })
-        .where(eq(requestForLeave.id, input.id))
-        .returning();
-
-      return newRequest[0];
-    }),
-
-  getById: protectedProcedure
-    .use(requirePermission("LeaveRequest.read"))
-    .input(z.object({ id: z.number() }))
-    .query(async ({ ctx, input }) => {
-      if (!ctx.user) return;
-
-       const result = await ctx.db
-        .select()
-        .from(requestForLeave)
-        .where(
-          and(
-            eq(requestForLeave.id, input.id),
-            eq(requestForLeave.userId, ctx.user.id),
-            eq(requestForLeave.status, "pending"),
-          ),
-        )
-        .limit(1);
-        
-        return result[0] ?? null;
+      return result[0] ?? null;
     }),
 });
