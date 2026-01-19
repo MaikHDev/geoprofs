@@ -48,6 +48,7 @@ export default function SignInPage() {
         <div className="mb-4">
           <label className="mb-1 block font-medium">Email</label>
           <input
+            data-testid="email-input"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -59,6 +60,7 @@ export default function SignInPage() {
         <div className="mb-6">
           <label className="mb-1 block font-medium">Password</label>
           <input
+            data-testid="password-input"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -68,6 +70,7 @@ export default function SignInPage() {
         </div>
 
         <button
+          data-testid="sign-in-button"
           type="submit"
           disabled={loading}
           className="w-full rounded-lg bg-blue-600 py-2 text-white transition hover:bg-blue-700"
