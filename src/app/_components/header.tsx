@@ -11,6 +11,7 @@ import { HasPermission } from "../../../utils/hasPermission";
 type NavItem = {
   label: string;
   show?: boolean;
+  testId: string;
 } & ({ href: string; onClick?: never } | { onClick: () => void; href?: never });
 
 export default function Header() {
@@ -36,6 +37,7 @@ export default function Header() {
     home: "/",
     requestForLeave: "/requestForLeave/create",
     leaveRequests: "/leaveRequests",
+    createUser: "/createUser",
     auth: "/auth",
     dashboard: "/dashboard",
   } as const;
@@ -61,25 +63,44 @@ export default function Header() {
   };
 
   const navItems: NavItem[] = [
-    { label: "Home", href: urls.home },
+    { label: "Home", href: urls.home, testId: "header-home-button" },
     {
       label: "Make leave request",
       href: urls.requestForLeave,
       show: isAuthenticated && hasPermission("LeaveRequest.create"),
+      testId: "header-make-leave-request-button",
+    },
+    {
+      label: "Create user",
+      href: urls.requestForLeave,
+      show: isAuthenticated && hasPermission("User.create"),
+      testId: "header-create-user-button",
     },
     {
       label: "Call in sick",
       onClick: handleCallInSick,
       show: isAuthenticated && hasPermission("LeaveRequest.create"),
+      testId: "header-call-in-sick-button",
     },
     {
       label: "Leave requests",
       href: urls.leaveRequests,
       show:
         isAuthenticated && hasPermission("LeaveRequestReviewUseOthers.create"),
+      testId: "header-view-leave-requests-button",
     },
-    { label: "Login", href: urls.auth, show: !isAuthenticated },
-    { label: "Dashboard", href: urls.dashboard, show: isAuthenticated },
+    {
+      label: "Login",
+      href: urls.auth,
+      show: !isAuthenticated,
+      testId: "header-login-button",
+    },
+    {
+      label: "Dashboard",
+      href: urls.dashboard,
+      show: isAuthenticated,
+      testId: "header-dashboard-link",
+    },
   ];
 
   return (
@@ -98,6 +119,7 @@ export default function Header() {
                   <button
                     key={index}
                     onClick={item.onClick}
+                    data-testid={item.testId}
                     className="font-inherit cursor-pointer border-none bg-transparent p-0 text-gray-700 transition hover:text-blue-600"
                   >
                     {item.label}
@@ -109,6 +131,7 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  data-testid={item.testId}
                   className={
                     pathname === item.href
                       ? "text-blue-600"

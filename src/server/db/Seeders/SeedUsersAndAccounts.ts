@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm";
 export const users: AccountType[] = [
   {
     vacationDays: 30,
-    email: "john@email.com",
+    email: "admin@email.com",
     emailVerified: true,
     name: "John",
     lastName: "Doe",
@@ -16,7 +16,7 @@ export const users: AccountType[] = [
   },
   {
     vacationDays: 30,
-    email: "klaas@email.com",
+    email: "office-manager@email.com",
     emailVerified: true,
     name: "Klaas",
     lastName: "Klaassen",
@@ -25,10 +25,28 @@ export const users: AccountType[] = [
   },
   {
     vacationDays: 30,
-    email: "piet@email.com",
+    email: "manager@email.com",
     emailVerified: true,
     name: "Piet",
     lastName: "pieters",
+    password: "12345678",
+    csn: "1236547582341",
+  },
+  {
+    vacationDays: 30,
+    email: "employee1@email.com",
+    emailVerified: true,
+    name: "grok",
+    lastName: "bol",
+    password: "12345678",
+    csn: "1236547582341",
+  },
+  {
+    vacationDays: 30,
+    email: "employee2@email.com",
+    emailVerified: false,
+    name: "baghal",
+    lastName: "kersten",
     password: "12345678",
     csn: "1236547582341",
   },

@@ -66,25 +66,45 @@ export default function SignInPage() {
         <form
           onSubmit={handleSignIn}
           className="w-full max-w-sm rounded-xl bg-white p-8 shadow-md"
+          data-testid="signin-form"
         >
           <h1 className="mb-6 text-center text-2xl font-bold">Sign In</h1>
-          <h2 className="mb-6 text-center text-red-500">{error}</h2>
+          {error && (
+            <h2
+              className="mb-6 text-center text-red-500"
+              data-testid="error-message"
+            >
+              {error}
+            </h2>
+          )}
           <div className="mb-4">
-            <label className="mb-1 block font-medium">Email</label>
+            <label className="mb-1 block font-medium" htmlFor="email">
+              Email
+            </label>
             <input
+              id="email"
+              name="email"
               type="email"
+              value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
+              data-testid="email-input"
               required
             />
           </div>
 
           <div className="mb-6">
-            <label className="mb-1 block font-medium">Password</label>
+            <label className="mb-1 block font-medium" htmlFor="password">
+              Password
+            </label>
             <input
+              id="password"
+              name="password"
               type="password"
+              value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-lg border px-3 py-2 focus:ring focus:ring-blue-300 focus:outline-none"
+              data-testid="password-input"
               required
             />
           </div>
@@ -92,7 +112,8 @@ export default function SignInPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-blue-600 py-2 text-white transition hover:bg-blue-700"
+            className="w-full rounded-lg bg-blue-600 py-2 text-white transition hover:bg-blue-700 disabled:opacity-50"
+            data-testid="submit-button"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

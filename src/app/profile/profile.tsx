@@ -268,6 +268,7 @@ export default function Profile() {
           <button
             onClick={() => handleLogout()}
             className="rounded-[4px] bg-red-400 px-6 py-2 font-semibold text-white transition-colors hover:bg-red-500"
+            data-testid="logout-button"
           >
             Logout
           </button>

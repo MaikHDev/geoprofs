@@ -10,14 +10,19 @@ interface Role {
 export async function seedRoles() {
   const predefinedRoles: Role[] = [
     { id: 1, roleName: "Admin", description: "test" },
-    { id: 2, roleName: "Werkgever", description: "test" },
-    { id: 3, roleName: "Werknemer", description: "test" },
+    { id: 2, roleName: "Office-Manager", description: "test" },
+    { id: 3, roleName: "Manager", description: "test" },
+    { id: 4, roleName: "Employee", description: "test" },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(roles);
 
-  await db.insert(roles).values(predefinedRoles).onConflictDoNothing().execute();
+  await db
+    .insert(roles)
+    .values(predefinedRoles)
+    .onConflictDoNothing()
+    .execute();
 
   console.log("Roles seeded");
 }
