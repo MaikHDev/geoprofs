@@ -73,7 +73,7 @@ export default function Header() {
     {
       label: "Create user",
       href: urls.requestForLeave,
-      show: isAuthenticated && hasPermission("User.create"),
+      show: isAuthenticated && hasPermission("UserUseOthers.create"),
       testId: "header-create-user-button",
     },
     {
@@ -85,8 +85,7 @@ export default function Header() {
     {
       label: "Leave requests",
       href: urls.leaveRequests,
-      show:
-        isAuthenticated && hasPermission("LeaveRequestReviewUseOthers.create"),
+      show: isAuthenticated && hasPermission("LeaveRequestUseOthers.read"),
       testId: "header-view-leave-requests-button",
     },
     {
