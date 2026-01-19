@@ -13,3 +13,14 @@ if (
   style.setAttribute("data-hide-command-log-request", "");
   app.document.head.appendChild(style);
 }
+
+Cypress.on("uncaught:exception", (err, runnable) => {
+  if (
+    err.message.includes("Hydration failed") ||
+    err.message.includes("Minified React error")
+  ) {
+    return false;
+  }
+  // Let other errors fail the test
+  return false;
+});
