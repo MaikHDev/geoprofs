@@ -45,6 +45,8 @@ export async function seedRolesHasPermissions() {
       "LeaveRequestUseOthers.read",
       "LeaveRequestUseOthers.update",
       "LeaveRequestUseOthers.delete",
+      "LeaveRequestReviewUseOthers.read",
+      "LeaveRequestReviewUseOthers.create",
       "Department.read",
       "Role.read",
       "RolePermission.read",
