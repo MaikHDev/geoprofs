@@ -3,13 +3,32 @@
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import ReturnView from "~/app/_components/returnView";
+import { usePermission } from "~/hooks/usePermission";
+
 
 export default function LeaveRequestView() {
   const router = useRouter();
-  const { data } = api.leaveRequest.viewStatus.useQuery();
+  const {
+    data,
+    isLoading: isDataLoading,
+  } = api.leaveRequest.viewStatus.useQuery();
 
+  const { hasPermission, isLoading } = usePermission();
   const [statusFilter, setStatusFilter] = useState("all");
   const [reasonFilter, setReasonFilter] = useState("all");
+
+  if (isLoading || isDataLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-lg font-medium text-gray-600">Loading...</p>
+      </div>
+    );
+  }
+
+  if (!isLoading && !hasPermission("LeaveRequest.read")) {
+    return <ReturnView />;
+  }
 
   if (!data) return null;
 
@@ -41,6 +60,7 @@ export default function LeaveRequestView() {
     <div className="flex flex-col gap-4">
       <div className="flex justify-end gap-3">
         <select
+          data-testid="reason-filter"
           value={reasonFilter}
           onChange={(e) => setReasonFilter(e.target.value)}
           className="border rounded px-3 py-2"
@@ -54,6 +74,7 @@ export default function LeaveRequestView() {
         </select>
 
         <select
+          data-testid="status-filter"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
           className="border rounded px-3 py-2"
