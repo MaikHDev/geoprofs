@@ -9,11 +9,22 @@ import { usePermission } from "~/hooks/usePermission";
 
 export default function LeaveRequestView() {
   const router = useRouter();
-  const { data } = api.leaveRequest.viewStatus.useQuery();
+  const {
+    data,
+    isLoading: isDataLoading,
+  } = api.leaveRequest.viewStatus.useQuery();
 
   const { hasPermission, isLoading } = usePermission();
   const [statusFilter, setStatusFilter] = useState("all");
   const [reasonFilter, setReasonFilter] = useState("all");
+
+  if (isLoading || isDataLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-lg font-medium text-gray-600">Loading...</p>
+      </div>
+    );
+  }
 
   if (!isLoading && !hasPermission("LeaveRequest.read")) {
     return <ReturnView />;
