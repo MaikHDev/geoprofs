@@ -137,9 +137,17 @@ export const leaveRequestsRouter = createTRPCRouter({
           ),
         );
 
-      if (!existing) throw new TRPCError({code: 'BAD_REQUEST', message: "The selected request can't be updated since it doesn't exist"});
+      if (!existing)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "The selected request can't be updated since it doesn't exist",
+        });
       if (existing.status === "approved" || existing.status === "denied") {
-        throw new TRPCError({code: 'CONFLICT', message: "This request has already been handled"});
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "This request has already been handled",
+        });
       }
 
       const [updatedExisting] = await ctx.db
@@ -155,17 +163,18 @@ export const leaveRequestsRouter = createTRPCRouter({
             ne(requestForLeave.userId, ctx.user!.id),
             gte(requestForLeave.dateLeaveEnd, today),
           ),
-        ).returning();
+        )
+        .returning();
 
-        await logAction({
-            logContext: "leave_requests",
-            logEvent: "assigned",
-            userId: ctx.session.user.id,
-            details: {
-                context: "leave_requests",
-                before: existing,
-                after: updatedExisting,
-            },
-        });
+      await logAction({
+        logContext: "leave_requests",
+        logEvent: "assigned",
+        userId: ctx.session.user.id,
+        details: {
+          context: "leave_requests",
+          before: existing,
+          after: updatedExisting,
+        },
+      });
     }),
 });
