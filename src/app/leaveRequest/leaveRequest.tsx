@@ -63,10 +63,6 @@ export default function LeaveRequestDetailsPage() {
   return (
     <div className="flex justify-center px-4 py-10">
       <div className="w-full max-w-2xl rounded-xl border border-gray-100 bg-white p-8 shadow-md">
-        <h1 className="mb-6 text-2xl font-semibold text-[#007379]">
-          {data.subject}
-        </h1>
-
         <div className="space-y-3 text-gray-700">
           <p>
             <strong className="font-medium text-gray-900">Requester:</strong>{" "}

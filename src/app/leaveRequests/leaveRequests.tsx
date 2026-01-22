@@ -4,7 +4,7 @@ import { api } from "~/trpc/react";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReturnView from "~/app/_components/returnView";
-import {usePermission} from "~/hooks/usePermission";
+import { usePermission } from "~/hooks/usePermission";
 
 export default function PendingLeaveRequestsPage() {
   const { hasPermission } = usePermission();
@@ -60,9 +60,9 @@ export default function PendingLeaveRequestsPage() {
     setIsAllChecked(!isAllChecked);
   };
 
-    if (!isLoading && !hasPermission("LeaveRequestUseOthers.read")) {
-        return <ReturnView />;
-    }
+  if (!isLoading && !hasPermission("LeaveRequestUseOthers.read")) {
+    return <ReturnView />;
+  }
 
   if (isLoading)
     return (

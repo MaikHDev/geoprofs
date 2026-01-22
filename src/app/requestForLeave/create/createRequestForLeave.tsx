@@ -71,7 +71,6 @@ export default function CreateRequestForLeave() {
         dateLeaveStart,
         dateLeaveEnd,
         reasoning,
-        subject: "Leave Request",
       });
 
       setReasonOfLeave("leave");
