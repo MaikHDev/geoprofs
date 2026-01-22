@@ -25,7 +25,7 @@ export default function SignInPage() {
         {
           email,
           password,
-          callbackURL: "/dashboard",
+          callbackURL: "/",
         },
         {
           onError: (ctx) => {
