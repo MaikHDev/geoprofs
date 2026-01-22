@@ -6,6 +6,8 @@ import {
 import { requestForLeave, user } from "~/server/db/schema";
 import { and, eq, gte, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
+import { logAction } from "../../../../utils/log-handle";
+import { TRPCError } from "@trpc/server";
 
 export const leaveRequestsRouter = createTRPCRouter({
   listPendingRequests: protectedProcedure
@@ -17,7 +19,6 @@ export const leaveRequestsRouter = createTRPCRouter({
       return ctx.db
         .select({
           id: requestForLeave.id,
-          subject: requestForLeave.subject,
           reason: requestForLeave.reasonOfLeave,
           status: requestForLeave.status,
           reasoning: requestForLeave.reasoning,
@@ -49,7 +50,6 @@ export const leaveRequestsRouter = createTRPCRouter({
       const [req] = await ctx.db
         .select({
           id: requestForLeave.id,
-          subject: requestForLeave.subject,
           reason: requestForLeave.reasonOfLeave,
           status: requestForLeave.status,
           start: requestForLeave.dateLeaveStart,
@@ -137,12 +137,20 @@ export const leaveRequestsRouter = createTRPCRouter({
           ),
         );
 
-      if (!existing) throw new Error("Request not found");
+      if (!existing)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message:
+            "The selected request can't be updated since it doesn't exist",
+        });
       if (existing.status === "approved" || existing.status === "denied") {
-        throw new Error("This request has already been handled");
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "This request has already been handled",
+        });
       }
 
-      await ctx.db
+      const [updatedExisting] = await ctx.db
         .update(requestForLeave)
         .set({
           status: input.status,
@@ -155,6 +163,18 @@ export const leaveRequestsRouter = createTRPCRouter({
             ne(requestForLeave.userId, ctx.user!.id),
             gte(requestForLeave.dateLeaveEnd, today),
           ),
-        );
+        )
+        .returning();
+
+      await logAction({
+        logContext: "leave_requests",
+        logEvent: "assigned",
+        userId: ctx.session.user.id,
+        details: {
+          context: "leave_requests",
+          before: existing,
+          after: updatedExisting,
+        },
+      });
     }),
 });

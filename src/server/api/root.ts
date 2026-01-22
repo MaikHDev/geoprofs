@@ -1,8 +1,9 @@
-import { postRouter } from "~/server/api/routers/post";
-import { leaveRequestsRouter } from "~/server/api/routers/leaveRequest";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { leaveRequestsRouter } from "~/server/api/routers/leaveRequest";
+import { auditTrailRouter } from "~/server/api/routers/audit-trail";
 import { requestForLeaveRouter } from "./routers/requestForLeave";
 import { authRouter } from "~/server/api/routers/auth";
+import { userAccountRouter } from "~/server/api/routers/userAccount";
 
 /**
  * This is the primary router for your server.
@@ -10,10 +11,11 @@ import { authRouter } from "~/server/api/routers/auth";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  post: postRouter,
+  auditTrail: auditTrailRouter,
   requestForLeave: requestForLeaveRouter,
   auth: authRouter,
   leaveRequest: leaveRequestsRouter,
+  userAccount: userAccountRouter,
 });
 
 // export type definition of API
