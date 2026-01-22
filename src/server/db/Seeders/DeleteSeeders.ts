@@ -1,27 +1,23 @@
-import {
-  account,
-  permissions,
-  rolePermissions,
-  roles,
-  user,
-  userRoles,
-} from "~/server/db/schema";
 import { db } from "~/server/db";
+import { sql } from "drizzle-orm";
 
 export async function seedDelete() {
-
-  // eslint-disable-next-line drizzle/enforce-delete-with-where
-  await db.delete(rolePermissions);
-  // eslint-disable-next-line drizzle/enforce-delete-with-where
-  await db.delete(userRoles);
-  // eslint-disable-next-line drizzle/enforce-delete-with-where
-  await db.delete(permissions);
-  // eslint-disable-next-line drizzle/enforce-delete-with-where
-  await db.delete(roles);
-  // eslint-disable-next-line drizzle/enforce-delete-with-where
-  await db.delete(user);
-  // eslint-disable-next-line drizzle/enforce-delete-with-where
-  await db.delete(account);
+  await db.execute(sql`
+    TRUNCATE TABLE
+      "rolePermissions",
+      "userRoles",
+      "userDepartments",
+      "requestForLeave",
+      "session",
+      "account",
+      "user",
+      "permissions",
+      "roles",
+      "departments",
+      "verification",
+      "logs"
+    RESTART IDENTITY CASCADE;
+  `);
 
   console.log("Delete ran");
 }

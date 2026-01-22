@@ -132,7 +132,6 @@ export default function EditRequestForLeave() {
     try {
       await updateRequest.mutateAsync({
         id: requestId,
-        subject: "Leave Request",
         reasonOfLeave,
         dateLeaveStart,
         dateLeaveEnd,

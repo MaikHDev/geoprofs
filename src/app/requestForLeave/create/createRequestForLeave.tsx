@@ -42,7 +42,7 @@ export default function CreateRequestForLeave() {
     );
   }
 
-  if (!hasPermission("LeaveRequest.update")) {
+  if (!hasPermission("LeaveRequest.create")) {
     return <ReturnView />;
   }
 
@@ -71,7 +71,6 @@ export default function CreateRequestForLeave() {
         dateLeaveStart,
         dateLeaveEnd,
         reasoning,
-        subject: "Leave Request",
       });
 
       setReasonOfLeave("leave");

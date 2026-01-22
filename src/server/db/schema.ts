@@ -1,6 +1,14 @@
-import {index, pgEnum, pgTable, primaryKey, text, timestamp, unique,} from "drizzle-orm/pg-core";
-import {relations} from "drizzle-orm/relations";
-import {type InferSelectModel, sql} from "drizzle-orm";
+import {
+  index,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  unique,
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm/relations";
+import { type InferSelectModel, sql } from "drizzle-orm";
 
 export const Actions = pgEnum("Actions", [
   "create",
@@ -92,12 +100,15 @@ export const userRoles = pgTable(
     roleId: d
       .integer()
       .notNull()
-      .references(() => roles.id, { onDelete: "cascade" }),
+      .references(() => roles.id, { onDelete: "cascade", onUpdate: "cascade" }),
     userEmail: d
       .varchar({ length: 255 })
       .notNull()
       .unique()
-      .references(() => user.email, { onDelete: "cascade" }),
+      .references(() => user.email, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     assignedAt: d
       .timestamp({ withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -184,12 +195,14 @@ export const session = pgTable("session", {
 });
 
 export const account = pgTable("account", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   accountId: text("account_id").notNull(),
   providerId: text("provider_id").notNull(),
   userId: text("user_id")
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
   accessToken: text("access_token"),
   refreshToken: text("refresh_token"),
   idToken: text("id_token"),
@@ -221,14 +234,16 @@ export const requestForLeave = pgTable("requestForLeave", (d) => ({
   userId: d
     .text()
     .notNull()
-    .references(() => user.id, { onDelete: "cascade" }),
+    .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
   reasonOfLeave: ReasonsForLeave().notNull(),
   status: Statuses().notNull().default("pending"),
   dateLeaveStart: d.timestamp().notNull(),
   dateLeaveEnd: d.timestamp().notNull(),
   reasoning: d.text().notNull(),
   feedback: d.text(),
-  reviewer: d.text().references(() => user.id, { onDelete: "set null" }),
+  reviewer: d
+    .text()
+    .references(() => user.id, { onDelete: "set null", onUpdate: "cascade" }),
   createdAt: d.timestamp("created_at").defaultNow().notNull(),
   updatedAt: d
     .timestamp("updated_at")
@@ -271,10 +286,15 @@ export const departmentsRelations = relations(departments, ({ many, one }) => ({
 export const userDepartments = pgTable(
   "userDepartments",
   (d) => ({
-    userId: d.text().references(() => user.id, { onDelete: "cascade" }),
+    userId: d
+      .text()
+      .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
     departmentName: d
       .varchar({ length: 50 })
-      .references(() => departments.name, { onDelete: "cascade" }),
+      .references(() => departments.name, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     joinedAt: d.timestamp().defaultNow().notNull(),
   }),
   (t) => [primaryKey({ columns: [t.userId, t.departmentName] })],
@@ -334,7 +354,7 @@ export const logs = pgTable("logs", (d) => ({
   userId: d
     .text("userId")
     .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: "set null", onUpdate: "cascade" }),
   logEvent: LogEvents().notNull(),
   logContext: LogContext().notNull(),
   createdAt: d.timestamp("created_at").defaultNow().notNull(),

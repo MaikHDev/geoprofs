@@ -1,17 +1,15 @@
 import { db } from "~/server/db";
 import { userRoles } from "~/server/db/schema";
+import type { InferInsertModel } from "drizzle-orm";
 
-interface UserHasRoles {
-  roleId: number;
-  userEmail: string;
-  assignedAt?: Date;
-  id?: string;
-}
+type UserHasRoles = InferInsertModel<typeof userRoles>;
 
 export async function seedUserHasRoles() {
   const predefinedUserHasRoles: UserHasRoles[] = [
-    { id: "1", roleId: 1, userEmail: "john@email.com", assignedAt: new Date() },
-    { id: "2", roleId: 2, userEmail: "klaas@email.com", assignedAt: new Date()  },
+    { roleId: 1, userEmail: "admin@email.com", assignedAt: new Date() },
+    { roleId: 2, userEmail: "officemanager@email.com", assignedAt: new Date() },
+    { roleId: 3, userEmail: "manager@email.com", assignedAt: new Date() },
+    { roleId: 4, userEmail: "employee@email.com", assignedAt: new Date() },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where

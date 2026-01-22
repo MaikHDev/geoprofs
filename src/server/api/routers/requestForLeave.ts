@@ -1,12 +1,11 @@
 import z from "zod";
-
 import {
   createTRPCRouter,
   protectedProcedure,
   requirePermission,
 } from "../trpc";
 import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, sql, isNull } from "drizzle-orm";
 import { logAction } from "../../../../utils/log-handle";
 import { TRPCError } from "@trpc/server";
 
@@ -15,7 +14,6 @@ export const requestForLeaveRouter = createTRPCRouter({
     .use(requirePermission("LeaveRequest.create"))
     .input(
       z.object({
-        subject: z.string(),
         reasonOfLeave: z.enum(ReasonsForLeave.enumValues),
         dateLeaveStart: z.date(),
         dateLeaveEnd: z.date(),
@@ -25,13 +23,14 @@ export const requestForLeaveRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const date = new Date();
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      if (
-        input.dateLeaveStart.getDay() < date.getDay() ||
-        input.dateLeaveEnd.getDay() < date.getDay()
-      ) {
-        return;
+      const start = new Date(input.dateLeaveStart);
+      const end = new Date(input.dateLeaveEnd);
+
+      if (start < today || end < today) {
+        throw new Error("Dates cannot be in the past.");
       }
 
       const existing = await ctx.db.$count(
@@ -91,7 +90,6 @@ export const requestForLeaveRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.number(),
-        subject: z.string(),
         reasonOfLeave: z.enum(ReasonsForLeave.enumValues),
         dateLeaveStart: z.date(),
         dateLeaveEnd: z.date(),
@@ -100,15 +98,18 @@ export const requestForLeaveRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.user) return;
-      const date = new Date();
 
-      if (
-        input.dateLeaveStart.getDay() < date.getDay() ||
-        input.dateLeaveEnd.getDay() < date.getDay()
-      ) {
-        return;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const start = new Date(input.dateLeaveStart);
+      const end = new Date(input.dateLeaveEnd);
+
+      if (start < today || end < today) {
+        throw new Error("Dates cannot be in the past.");
       }
-      const result = await ctx.db
+
+      const [existing] = await ctx.db
         .select()
         .from(requestForLeave)
         .where(
@@ -116,13 +117,18 @@ export const requestForLeaveRouter = createTRPCRouter({
             eq(requestForLeave.id, input.id),
             eq(requestForLeave.userId, ctx.user.id),
             eq(requestForLeave.status, "pending"),
+            isNull(requestForLeave.reviewer),
           ),
         )
         .limit(1);
 
-      if (!result) return;
+      if (!existing) {
+        throw new Error(
+          "You can no longer modify this request because it is being reviewed or already handled.",
+        );
+      }
 
-      const newRequest = await ctx.db
+      const [newRequest] = await ctx.db
         .update(requestForLeave)
         .set({
           userId: ctx.session.user.id,
@@ -140,12 +146,12 @@ export const requestForLeaveRouter = createTRPCRouter({
         userId: ctx.session.user.id,
         details: {
           context: "leave_requests",
-          before: result[0],
-          after: newRequest[0],
+          before: existing,
+          after: newRequest,
         },
       });
 
-      return result[0];
+      return newRequest;
     }),
 
   getById: protectedProcedure
