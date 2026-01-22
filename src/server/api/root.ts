@@ -2,6 +2,7 @@ import { postRouter } from "~/server/api/routers/post";
 import { leaveRequestsRouter } from "~/server/api/routers/leaveRequest";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { requestForLeaveRouter } from "./routers/requestForLeave";
+import { leavePlanningRouter } from "./routers/leavePlanning";
 import { authRouter } from "~/server/api/routers/auth";
 
 /**
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   requestForLeave: requestForLeaveRouter,
   auth: authRouter,
   leaveRequest: leaveRequestsRouter,
+  leavePlanning: leavePlanningRouter,
 });
 
 // export type definition of API
