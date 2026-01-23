@@ -6,7 +6,7 @@ import {
 } from "~/server/api/trpc";
 import { eq, type InferInsertModel } from "drizzle-orm";
 
-import { account, user } from "~/server/db/schema";
+import { account, roles, user, userRoles } from "~/server/db/schema";
 import { logAction } from "../../../../utils/log-handle";
 import { db } from "~/server/db";
 import { TRPCError } from "@trpc/server";
@@ -22,6 +22,7 @@ export const accountSchema = z.object({
   email: z.string(),
   image: z.string().optional().nullable(),
   vacationDays: z.number().optional().nullable(),
+  role: z.string(),
 });
 
 export type AccountType = InferInsertModel<typeof user> & {
@@ -32,9 +33,11 @@ export type AccountType = InferInsertModel<typeof user> & {
 export const insertUser = async ({
   creator,
   input,
+  roleId,
 }: {
   creator: string;
   input: AccountType;
+  roleId?: number;
 }) => {
   const [userAcc] = await db
     .insert(user)
@@ -56,6 +59,13 @@ export const insertUser = async ({
       csn: input.csn,
       password: input.password,
     });
+
+    if (roleId) {
+      await db.insert(userRoles).values({
+        roleId,
+        userEmail: userAcc.email,
+      });
+    }
 
     await logAction({
       logContext: "users",
@@ -80,11 +90,12 @@ export const userAccountRouter = createTRPCRouter({
     .input(accountSchema)
     .use(requirePermission("UserUseOthers.create"))
     .mutation(async ({ ctx, input }) => {
+      console.log("intput:: ,",input)
       if (!ctx.user) return;
 
       const context = await auth.$context;
 
-      input.password.trim();
+      input.password = input.password.trim();
       if (input.password.length < 8) {
         throw new TRPCError({
           code: "BAD_REQUEST",
@@ -98,15 +109,26 @@ export const userAccountRouter = createTRPCRouter({
         .from(user)
         .where(eq(user.email, input.email));
 
+      const [existingRole] = await ctx.db
+        .selectDistinct()
+        .from(roles)
+        .where(eq(roles.roleName, input.role));
+
       if (existingUser) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "A user already exists with that email",
+          message: "A user already exists with that email!",
+        });
+      }
+      if (!existingRole) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "A role with that name doesn't exist!",
         });
       }
 
       try {
-        const email = await insertUser({ creator: ctx.user?.id, input });
+        const email = await insertUser({ creator: ctx.user?.id, input, roleId: existingRole.id });
         if (!email) {
           throw new Error("Couldn't get users email");
         }

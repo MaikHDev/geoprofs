@@ -122,13 +122,13 @@ export default function Profile() {
 
   let percent = 0;
 
-  if (profileData?.vacationDaysUsed && profileData?.totalVacationDays) {
-    percent = profileData?.vacationDaysUsed / profileData?.totalVacationDays;
+  if (profileData?.totalVacationDays) {
+    percent = profileData.vacationDaysUsed / profileData.totalVacationDays;
   }
 
   const r = Math.round(255 * percent);
   const g = Math.round(255 * (1 - percent));
-  const color = `rgb(${r}, ${g}, 0)`;
+  const color = `rgb(${r},${g},0)`;
 
   return (
     <div className="px-4 py-8">
@@ -212,8 +212,8 @@ export default function Profile() {
 
           <div className="flex flex-col">
             <label className="mb-1 font-medium">Vacation Days Left:</label>
-            <span className={`text-[${color}] text-xl`}>
-              {profileData?.vacationDaysUsed && profileData?.totalVacationDays
+            <span style={{ color }} className={`text-xl`}>
+              {profileData?.totalVacationDays
                 ? profileData?.totalVacationDays - profileData?.vacationDaysUsed
                 : "-"}
             </span>

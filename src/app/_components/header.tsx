@@ -46,7 +46,6 @@ export default function Header() {
 
   const handleConfirm = () => {
     createRequest.mutate({
-      subject: "Calling in sick for today",
       reasonOfLeave: "medical",
       dateLeaveStart: new Date(),
       dateLeaveEnd: new Date(),

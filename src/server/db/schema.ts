@@ -81,7 +81,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
 
 export const roles = pgTable("roles", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  roleName: d.varchar({ length: 50 }).notNull(),
+  roleName: d.varchar({ length: 50 }).notNull().unique(),
   description: d.text(),
   createdAt: d
     .timestamp({ withTimezone: true })
