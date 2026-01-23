@@ -3,11 +3,10 @@ import { sql } from "drizzle-orm";
 
 export async function seedDelete() {
   await db.execute(sql`
-    TRUNCATE TABLE 
+    TRUNCATE TABLE
       "rolePermissions",
       "userRoles",
       "userDepartments",
-      "usersTimeOff",
       "requestForLeave",
       "session",
       "account",
@@ -16,7 +15,7 @@ export async function seedDelete() {
       "roles",
       "departments",
       "verification",
-      "post"
+      "logs"
     RESTART IDENTITY CASCADE;
   `);
 

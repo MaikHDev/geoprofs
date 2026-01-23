@@ -5,21 +5,20 @@ import { ToastContainer, toast } from "react-toastify";
 import { api } from "~/trpc/react";
 import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
+import { ReasonsForLeave } from "~/server/db/schema";
+import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
 
-export const reasonOfLeaveValues = [
-  "vacation",
-  "personal",
-  "medical",
-  "extra"
-] as const;
+export const reasonOfLeaveValues = ReasonsForLeave.enumValues;
 
 export type ReasonOfLeave = (typeof reasonOfLeaveValues)[number];
 
 export default function CreateRequestForLeave() {
+  const { data: session, isLoading: isLoadingSession } =
+    api.userAccount.getUserSession.useQuery();
   const { hasPermission, isLoading } = usePermission();
 
   const [error, setError] = useState<string | null>(null);
-  const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("vacation");
+  const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("leave");
   const [dateLeaveStart, setDateLeaveStart] = useState<Date>(new Date());
   const [dateLeaveEnd, setDateLeaveEnd] = useState<Date>(new Date());
   const [reasoning, setReasoning] = useState("");
@@ -32,6 +31,16 @@ export default function CreateRequestForLeave() {
   const formatDate = (date: Date): string => date.toISOString().split("T")[0]!;
 
   const today = formatDate(new Date());
+
+  if (!isLoadingSession && !session) {
+    return (
+      <ReturnView
+        label={TrpcErrorlikeMessages.session.message}
+        returnName="Login"
+        returnPath="/auth"
+      />
+    );
+  }
 
   if (!isLoading && !hasPermission("LeaveRequest.create")) {
     return <ReturnView />;
@@ -62,10 +71,9 @@ export default function CreateRequestForLeave() {
         dateLeaveStart,
         dateLeaveEnd,
         reasoning,
-        subject: "Leave Request",
       });
 
-      setReasonOfLeave("vacation");
+      setReasonOfLeave("leave");
       setDateLeaveStart(new Date());
       setDateLeaveEnd(new Date());
       setReasoning("");
@@ -77,7 +85,8 @@ export default function CreateRequestForLeave() {
       }
     }
   }
-  if (isLoading) return <p>Loading...</p>;
+
+  if (isLoading || isLoadingSession) return <p>Loading...</p>;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F9F9F9] p-6">
@@ -101,9 +110,7 @@ export default function CreateRequestForLeave() {
                   name="reasonOfLeave"
                   value={type}
                   checked={reasonOfLeave === type}
-                  onChange={() =>
-                    setReasonOfLeave(type)
-                  }
+                  onChange={() => setReasonOfLeave(type)}
                   className="accent-[#00888F]"
                 />
                 <span className="text-[#000000] capitalize">{type}</span>

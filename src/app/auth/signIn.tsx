@@ -1,19 +1,18 @@
 "use client";
 import { useState } from "react";
 import { signIn } from "../../../utils/auth-actions";
-
-interface SignInPageProps {
-  handleSignIn: () => void;
-}
+import { useRouter } from "next/navigation";
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
+
     setError(null);
 
     if (password.length < 8) {
@@ -25,8 +24,12 @@ export default function SignInPage() {
     try {
       const result = await signIn(email, password);
 
-      if (!result.user) {
+      if (!result?.user) {
         setError("Invalid email or password");
+      }
+
+      if (result?.redirect && result?.url) {
+        router.push(result.url);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
@@ -42,9 +45,7 @@ export default function SignInPage() {
         className="w-full max-w-sm rounded-xl bg-white p-8 shadow-md"
       >
         <h1 className="mb-6 text-center text-2xl font-bold">Sign In</h1>
-
         {error && <p className="mb-4 text-red-500">{error}</p>}
-
         <div className="mb-4">
           <label className="mb-1 block font-medium">Email</label>
           <input
