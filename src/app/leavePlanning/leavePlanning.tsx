@@ -21,9 +21,9 @@ export default function LeavePlanningPage() {
     );
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex gap-4">
-        <div>
+    <div className="flex flex-col">
+      <div className="flex gap-6">
+        <div className="flex flex-row gap-2">
           <label className="">From</label>
           <input
             type="date"
@@ -32,7 +32,7 @@ export default function LeavePlanningPage() {
           />
         </div>
 
-        <div>
+        <div className="flex flex-row gap-2">
           <label className="">To</label>
           <input
             type="date"
@@ -46,24 +46,24 @@ export default function LeavePlanningPage() {
       {error && <p className="text-red-500">{error.message}</p>}
 
       {data && (
-        <table className="w-full">
-          <thead>
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
             <tr>
-              <th>Employee</th>
-              <th>Department</th>
-              <th>From</th>
-              <th>To</th>
-              <th>Reason</th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">Employee</th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">Department</th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">From</th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">To</th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">Reason</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-200 bg-white">
             {data.map((request) => (
-              <tr key={request.requestId}>
-                <td>{request.userName}</td>
-                <td>{request.departmentName}</td>
-                <td>{request.dateLeaveStart.toLocaleDateString()}</td>
-                <td>{request.dateLeaveEnd.toLocaleDateString()}</td>
-                <td>{request.reasonOfLeave}</td>
+              <tr key={request.requestId} className="hover:bg-gray-50">
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">{request.userName}</td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">{request.departmentName}</td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">{request.dateLeaveStart.toLocaleDateString()}</td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">{request.dateLeaveEnd.toLocaleDateString()}</td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">{request.reasonOfLeave}</td>
               </tr>
             ))}
           </tbody>
