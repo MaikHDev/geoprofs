@@ -162,8 +162,7 @@ export const leaveRequestsRouter = createTRPCRouter({
     .use(requirePermission("LeaveRequest.read"))
     .query(({ ctx }) => {
       return ctx.db.query.requestForLeave.findMany({
-        where: (r) => 
-          eq(r.userId, ctx.session.user.id),
+        where: (r) => eq(r.userId, ctx.session.user.id),
         columns: {
           id: true,
           dateLeaveStart: true,

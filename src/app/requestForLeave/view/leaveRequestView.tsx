@@ -6,13 +6,10 @@ import { useState } from "react";
 import ReturnView from "~/app/_components/returnView";
 import { usePermission } from "~/hooks/usePermission";
 
-
 export default function LeaveRequestView() {
   const router = useRouter();
-  const {
-    data,
-    isLoading: isDataLoading,
-  } = api.leaveRequest.viewStatus.useQuery();
+  const { data, isLoading: isDataLoading } =
+    api.leaveRequest.viewStatus.useQuery();
 
   const { hasPermission, isLoading } = usePermission();
   const [statusFilter, setStatusFilter] = useState("all");
@@ -43,12 +40,11 @@ export default function LeaveRequestView() {
   };
 
   const uniqueReasons = Array.from(
-    new Set(data.map((req) => req.reasonOfLeave))
+    new Set(data.map((req) => req.reasonOfLeave)),
   );
 
   const filteredData = data.filter((req) => {
-    const statusMatch =
-      statusFilter === "all" || req.status === statusFilter;
+    const statusMatch = statusFilter === "all" || req.status === statusFilter;
 
     const reasonMatch =
       reasonFilter === "all" || req.reasonOfLeave === reasonFilter;
@@ -63,7 +59,7 @@ export default function LeaveRequestView() {
           data-testid="reason-filter"
           value={reasonFilter}
           onChange={(e) => setReasonFilter(e.target.value)}
-          className="border rounded px-3 py-2"
+          className="rounded border px-3 py-2"
         >
           <option value="all">All Reasons</option>
           {uniqueReasons.map((reason) => (
@@ -77,7 +73,7 @@ export default function LeaveRequestView() {
           data-testid="status-filter"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="border rounded px-3 py-2"
+          className="rounded border px-3 py-2"
         >
           <option value="all">All Status</option>
           <option value="pending">Pending</option>
@@ -124,18 +120,14 @@ export default function LeaveRequestView() {
                       : ""
                   } bg-white transition`}
                 >
-                  <td className="border px-4 py-3">
-                    {req.reasonOfLeave}
-                  </td>
+                  <td className="border px-4 py-3">{req.reasonOfLeave}</td>
                   <td className="border px-4 py-3">
                     {req.dateLeaveStart.toLocaleDateString()}
                   </td>
                   <td className="border px-4 py-3">
                     {req.dateLeaveEnd.toLocaleDateString()}
                   </td>
-                  <td className="border px-4 py-3">
-                    {req.reasoning}
-                  </td>
+                  <td className="border px-4 py-3">{req.reasoning}</td>
                   <td
                     className={`border px-4 py-3 font-semibold ${statusColorMap[req.status]}`}
                   >
