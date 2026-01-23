@@ -3,6 +3,7 @@ import { leaveRequestsRouter } from "~/server/api/routers/leaveRequest";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { requestForLeaveRouter } from "./routers/requestForLeave";
 import { authRouter } from "~/server/api/routers/auth";
+import { homeRouter } from "~/server/api/routers/home";
 
 /**
  * This is the primary router for your server.
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   requestForLeave: requestForLeaveRouter,
   auth: authRouter,
   leaveRequest: leaveRequestsRouter,
+  home: homeRouter,
 });
 
 // export type definition of API
