@@ -1,30 +1,68 @@
-import { auth } from "../../../../utils/auth";
 import { db } from "~/server/db";
-import { account, user, } from "~/server/db/schema";
+import { account, user } from "~/server/db/schema";
+import { type AccountType, insertUser } from "~/server/api/routers/userAccount";
+import { auth } from "../../../../utils/auth";
+import { eq } from "drizzle-orm";
 
-interface User {
-  email: string;
-  name: string;
-  password: string;
+export const users: AccountType[] = [
+  {
+    vacationDays: 30,
+    email: "admin@email.com",
+    name: "Admin",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+  },
+  {
+    vacationDays: 30,
+    email: "officemanager@email.com",
+    name: "Office Manager",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+  },
+  {
+    vacationDays: 30,
+    email: "manager@email.com",
+    name: "Manager",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+  },
+  {
+    vacationDays: 30,
+    email: "employee@email.com",
+    name: "Employee",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+  },
+];
+
+async function createUser(u: AccountType) {
+  const context = await auth.$context;
+  u.password = await context.password.hash(u.password);
+
+  const [existingUser] = await db
+    .selectDistinct()
+    .from(user)
+    .where(eq(user.email, u.email));
+
+  if (existingUser) {
+    console.log("A user already exists with that email");
+    return;
+  }
+  await insertUser(u);
 }
 
 export async function seedUsersAndAccounts() {
-  const users: User[] = [
-    { email: "admin@email.com", name: "User 1", password: "12345678" },
-    { email: "officemanager@email.com", name: "User 2", password: "12345678" },
-    { email: "manager@email.com", name: "User 3", password: "12345678" },
-    { email: "employee@email.com", name: "User 4", password: "12345678" },
-  ];
-
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(user);
   // eslint-disable-next-line drizzle/enforce-delete-with-where
   await db.delete(account);
 
   for (const u of users) {
-    await auth.api.signUpEmail({
-      body: { email: u.email, password: u.password, name: u.name },
-    });
+    await createUser(u);
   }
 
   console.log("Users and Accounts seeded");
