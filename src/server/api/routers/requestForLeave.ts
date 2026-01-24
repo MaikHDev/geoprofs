@@ -6,13 +6,13 @@ import {
 } from "../trpc";
 import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
 import { and, eq, isNull } from "drizzle-orm";
+import { logAction } from "../../../../utils/log-handle";
 
 export const requestForLeaveRouter = createTRPCRouter({
   create: protectedProcedure
     .use(requirePermission("LeaveRequest.create"))
     .input(
       z.object({
-        subject: z.string(),
         reasonOfLeave: z.enum(ReasonsForLeave.enumValues),
         dateLeaveStart: z.date(),
         dateLeaveEnd: z.date(),
@@ -36,7 +36,6 @@ export const requestForLeaveRouter = createTRPCRouter({
         .insert(requestForLeave)
         .values({
           userId: ctx.session.user.id,
-          subject: input.subject,
           reasonOfLeave: input.reasonOfLeave,
           dateLeaveStart: input.dateLeaveStart,
           dateLeaveEnd: input.dateLeaveEnd,
@@ -44,6 +43,16 @@ export const requestForLeaveRouter = createTRPCRouter({
           feedback: "",
         })
         .returning();
+
+      await logAction({
+        logContext: "leave_requests",
+        logEvent: "created",
+        userId: ctx.session.user.id,
+        details: {
+          context: "leave_requests",
+          after: newRequest[0],
+        },
+      });
 
       return newRequest[0];
     }),
@@ -53,7 +62,6 @@ export const requestForLeaveRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.number(),
-        subject: z.string(),
         reasonOfLeave: z.enum(ReasonsForLeave.enumValues),
         dateLeaveStart: z.date(),
         dateLeaveEnd: z.date(),
@@ -96,7 +104,6 @@ export const requestForLeaveRouter = createTRPCRouter({
         .update(requestForLeave)
         .set({
           userId: ctx.session.user.id,
-          subject: input.subject,
           reasonOfLeave: input.reasonOfLeave,
           dateLeaveStart: input.dateLeaveStart,
           dateLeaveEnd: input.dateLeaveEnd,
@@ -106,6 +113,17 @@ export const requestForLeaveRouter = createTRPCRouter({
         })
         .where(eq(requestForLeave.id, input.id))
         .returning();
+
+      await logAction({
+        logContext: "leave_requests",
+        logEvent: "changed",
+        userId: ctx.session.user.id,
+        details: {
+          context: "leave_requests",
+          before: existing,
+          after: newRequest,
+        },
+      });
 
       return newRequest;
     }),
