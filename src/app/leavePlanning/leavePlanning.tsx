@@ -48,10 +48,15 @@ export default function LeavePlanningPage() {
       {isLoading && <p>Loading…</p>}
       {error && <p className="text-red-500">{error.message}</p>}
 
-      {data && (
-        <div className="rounded-lg border border-gray-200 shadow-sm">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+      {data &&
+        (data.length === 0 ? (
+          <div className="rounded-lg p-6 text-center text-md text-gray-600 shadow-sm">
+            No leave requests are between these dates.
+          </div>
+        ) : (
+          <div className="rounded-lg border border-gray-200 shadow-sm">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
               <tr>
                 <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
                   Employee
@@ -90,10 +95,10 @@ export default function LeavePlanningPage() {
                   </td>
                 </tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </tbody>
+            </table>
+          </div>
+        ))}
     </div>
   );
 }
