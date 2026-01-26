@@ -2,7 +2,8 @@
 
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
-import { usePermission } from "~/hooks/usePermission";
+import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../utils/hasPermission";
 
 type LeaveStatus = "pending" | "approved" | "denied" | "renewal" | "opened";
 
@@ -16,7 +17,8 @@ const statusColorMap: Record<LeaveStatus, string> = {
 
 export default function LeaveReminder() {
   const router = useRouter();
-  const { hasPermission } = usePermission();
+  const session = useSessionContext();
+  const hasPermission = HasPermission(session?.perms);
   const { data, isLoading } = api.home.reminderView.useQuery();
 
   if (data === undefined) {

@@ -38,6 +38,7 @@ export default function Header() {
     leaveRequests: "/leaveRequests",
     auth: "/auth",
     dashboard: "/dashboard",
+    leavePlanning: "/leavePlanning",
   } as const;
 
   const handleCallInSick = () => {
@@ -70,6 +71,11 @@ export default function Header() {
       label: "Call in sick",
       onClick: handleCallInSick,
       show: isAuthenticated && hasPermission("LeaveRequest.create"),
+    },
+    {
+      label: "Leave Planning",
+      href: urls.leavePlanning,
+      show: isAuthenticated && hasPermission("LeaveRequestUseOthers.read"),
     },
     {
       label: "Leave requests",
