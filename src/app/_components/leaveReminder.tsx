@@ -18,15 +18,18 @@ const statusColorMap: Record<LeaveStatus, string> = {
 export default function LeaveReminder() {
   const router = useRouter();
   const session = useSessionContext();
-  const hasPermission = HasPermission(session?.perms);
 
-  const canView = hasPermission("LeaveRequestUseOthers.read");
+  const perms = session?.perms;
+  const hasPermission = HasPermission(perms);
+
+  const canView =
+    perms !== undefined && hasPermission("LeaveRequestUseOthers.read");
 
   const { data, isLoading } = api.home.reminderView.useQuery(undefined, {
     enabled: canView,
   });
 
-  if (!canView) {
+  if (!perms || !canView) {
     return null;
   }
 
