@@ -6,20 +6,20 @@ import { eq } from "drizzle-orm";
 
 export const users: AccountType[] = [
   {
-    vacationDays: 30,
     email: "admin@email.com",
     name: "Admin",
     lastName: "Account",
     password: "12345678",
     csn: "1236547582341",
+    emailVerified: true,
   },
   {
-    vacationDays: 30,
     email: "officemanager@email.com",
     name: "Office Manager",
     lastName: "Account",
     password: "12345678",
     csn: "1236547582341",
+    emailVerified: true,
   },
   {
     vacationDays: 30,
@@ -28,6 +28,7 @@ export const users: AccountType[] = [
     lastName: "Account",
     password: "12345678",
     csn: "1236547582341",
+    emailVerified: true,
   },
   {
     vacationDays: 30,
@@ -36,6 +37,7 @@ export const users: AccountType[] = [
     lastName: "Account",
     password: "12345678",
     csn: "1236547582341",
+    emailVerified: true,
   },
 ];
 
@@ -52,7 +54,7 @@ async function createUser(u: AccountType) {
     console.log("A user already exists with that email");
     return;
   }
-  await insertUser(u);
+  await insertUser({ creator: u.id!, input: u });
 }
 
 export async function seedUsersAndAccounts() {

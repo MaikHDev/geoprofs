@@ -3,8 +3,13 @@ import "~/styles/globals.css";
 import {type Metadata} from "next";
 import {Geist} from "next/font/google";
 
-import {TRPCReactProvider} from "~/trpc/react";
-import {SocketProvider} from "~/app/_components/socket-provider";
+import { TRPCReactProvider } from "~/trpc/react";
+import { SocketProvider } from "~/app/_components/socket-provider";
+import { SessionProvider } from "~/app/_components/session-provider";
+import { api } from "~/trpc/server";
+import Header from "~/app/_components/header";
+import { ToastContainer } from "react-toastify";
+import React from "react";
 
 export const metadata: Metadata = {
     title: "Create T3 App",
@@ -13,18 +18,29 @@ export const metadata: Metadata = {
 };
 
 const geist = Geist({
-    subsets: ["latin"],
-    variable: "--font-geist-sans",
+  subsets: ["latin"],
+  variable: "--font-geist-sans",
 });
 
-export default async function RootLayout({children}: Readonly<{ children: React.ReactNode }>) {
-    return (
-        <html lang="en" className={`${geist.variable}`}>
-        <body>
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  await api.auth.getMyPermissions.prefetch();
+  const session = await api.userAccount.getUserSession();
+
+  return (
+    <html lang="en" className={`${geist.variable}`}>
+      <body>
         <TRPCReactProvider>
-            <SocketProvider>{children}</SocketProvider>
+          <SessionProvider session={session}>
+            <SocketProvider>
+              <ToastContainer />
+              <Header />
+              {children}
+            </SocketProvider>
+          </SessionProvider>
         </TRPCReactProvider>
-        </body>
-        </html>
-    );
+      </body>
+    </html>
+  );
 }

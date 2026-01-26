@@ -1,13 +1,15 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "~/trpc/react";
 import ReturnView from "~/app/_components/returnView";
-import { usePermission } from "~/hooks/usePermission";
+import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../utils/hasPermission";
 
 export default function LeaveRequestDetailsPage() {
-  const { hasPermission } = usePermission();
+  const session = useSessionContext();
+  const hasPermission = HasPermission(session?.perms);
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
 
@@ -56,8 +58,14 @@ export default function LeaveRequestDetailsPage() {
     updateStatusMutation.mutate({ id: Number(id), status: selectedStatus });
   };
 
-  if (!isLoading && !hasPermission("LeaveRequestUseOthers.read")) {
-    return <ReturnView />;
+  if (!isLoading && !session) {
+    return (
+      <ReturnView
+        returnPath="/auth"
+        returnName="Login"
+        label="You need to be logged in for this action!"
+      />
+    );
   }
 
   return (

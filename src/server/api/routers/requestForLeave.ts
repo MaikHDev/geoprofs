@@ -5,8 +5,9 @@ import {
   requirePermission,
 } from "../trpc";
 import { ReasonsForLeave, requestForLeave } from "~/server/db/schema";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, sql, isNull } from "drizzle-orm";
 import { logAction } from "../../../../utils/log-handle";
+import { TRPCError } from "@trpc/server";
 
 export const requestForLeaveRouter = createTRPCRouter({
   create: protectedProcedure
@@ -32,6 +33,36 @@ export const requestForLeaveRouter = createTRPCRouter({
         throw new Error("Dates cannot be in the past.");
       }
 
+      const existing = await ctx.db.$count(
+        requestForLeave,
+        and(
+          sql`DATE(
+                ${requestForLeave.dateLeaveStart}
+                )
+                =
+                DATE
+                (
+                ${input.dateLeaveStart}
+                )`,
+          sql`DATE(
+                ${requestForLeave.dateLeaveEnd}
+                )
+                =
+                DATE
+                (
+                ${input.dateLeaveEnd}
+                )`,
+          eq(requestForLeave.userId, ctx.user.id),
+        ),
+      );
+
+      if (existing > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "You have already placed a request of leave for that date.",
+        });
+      }
+
       const newRequest = await ctx.db
         .insert(requestForLeave)
         .values({
@@ -40,7 +71,6 @@ export const requestForLeaveRouter = createTRPCRouter({
           dateLeaveStart: input.dateLeaveStart,
           dateLeaveEnd: input.dateLeaveEnd,
           reasoning: input.reasoning,
-          feedback: "",
         })
         .returning();
 
@@ -53,8 +83,6 @@ export const requestForLeaveRouter = createTRPCRouter({
           after: newRequest[0],
         },
       });
-
-      return newRequest[0];
     }),
 
   update: protectedProcedure
@@ -108,8 +136,6 @@ export const requestForLeaveRouter = createTRPCRouter({
           dateLeaveStart: input.dateLeaveStart,
           dateLeaveEnd: input.dateLeaveEnd,
           reasoning: input.reasoning,
-          feedback: "",
-          updatedAt: new Date(),
         })
         .where(eq(requestForLeave.id, input.id))
         .returning();
@@ -134,7 +160,7 @@ export const requestForLeaveRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       if (!ctx.user) return;
 
-      const result = await ctx.db
+      const [result] = await ctx.db
         .select()
         .from(requestForLeave)
         .where(
@@ -146,6 +172,6 @@ export const requestForLeaveRouter = createTRPCRouter({
         )
         .limit(1);
 
-      return result[0] ?? null;
+      return result;
     }),
 });

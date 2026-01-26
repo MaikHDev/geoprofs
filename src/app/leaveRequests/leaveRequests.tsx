@@ -4,10 +4,12 @@ import { api } from "~/trpc/react";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import ReturnView from "~/app/_components/returnView";
-import { usePermission } from "~/hooks/usePermission";
+import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../utils/hasPermission";
 
 export default function PendingLeaveRequestsPage() {
-  const { hasPermission } = usePermission();
+  const session = useSessionContext();
+  const hasPermission = HasPermission(session?.perms);
   const utils = api.useUtils();
   const { data, isLoading } = api.leaveRequest.listPendingRequests.useQuery();
   const router = useRouter();
@@ -64,7 +66,17 @@ export default function PendingLeaveRequestsPage() {
     setIsAllChecked(!isAllChecked);
   };
 
-  if (!isLoading && !hasPermission("LeaveRequestUseOthers.read")) {
+  if (!session) {
+    return (
+      <ReturnView
+        returnPath="/auth"
+        returnName="Login"
+        label="You need to be logged in for this action!"
+      />
+    );
+  }
+
+  if (!hasPermission("LeaveRequestUseOthers.read")) {
     return <ReturnView />;
   }
 

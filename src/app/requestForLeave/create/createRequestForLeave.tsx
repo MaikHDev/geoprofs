@@ -1,21 +1,21 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { api } from "~/trpc/react";
-import { usePermission } from "~/hooks/usePermission";
 import ReturnView from "~/app/_components/returnView";
 import { ReasonsForLeave } from "~/server/db/schema";
 import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
+import { useSessionContext } from "~/app/_components/session-provider";
+import {HasPermission} from "../../../../utils/hasPermission";
 
 export const reasonOfLeaveValues = ReasonsForLeave.enumValues;
 
 export type ReasonOfLeave = (typeof reasonOfLeaveValues)[number];
 
 export default function CreateRequestForLeave() {
-  const { data: session, isLoading: isLoadingSession } =
-    api.userAccount.getUserSession.useQuery();
-  const { hasPermission, isLoading } = usePermission();
+  const session = useSessionContext();
+  const hasPermission = HasPermission(session?.perms);
 
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("leave");
@@ -32,7 +32,7 @@ export default function CreateRequestForLeave() {
 
   const today = formatDate(new Date());
 
-  if (!isLoadingSession && !session) {
+  if (!session) {
     return (
       <ReturnView
         label={TrpcErrorlikeMessages.session.message}
@@ -42,7 +42,7 @@ export default function CreateRequestForLeave() {
     );
   }
 
-  if (!isLoading && !hasPermission("LeaveRequest.create")) {
+  if (!hasPermission("LeaveRequest.create")) {
     return <ReturnView />;
   }
 
@@ -80,13 +80,10 @@ export default function CreateRequestForLeave() {
       toast.success("Request placed!");
     } catch (err) {
       if (err && err instanceof Error) {
-        setError(err.message ?? "Unknown error");
         toast.error(err.message);
       }
     }
   }
-
-  if (isLoading || isLoadingSession) return <p>Loading...</p>;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F9F9F9] p-6">
@@ -176,12 +173,9 @@ export default function CreateRequestForLeave() {
             className="min-h-[120px] rounded-[4px] border border-[#CCCCCC] px-3 py-2 focus:ring-2 focus:ring-[#00888F] focus:outline-none"
           />
         </div>
+
         <div className="flex flex-col">
-          {error && (
-            <p className="mb-3 text-center text-sm font-medium text-[#FF3333]">
-              {error}
-            </p>
-          )}
+          {error && <div className="text-red-500">{error}</div>}
           <button
             type="submit"
             disabled={createRequest.isPending}
@@ -194,7 +188,6 @@ export default function CreateRequestForLeave() {
             {createRequest.isPending ? "Submitting..." : "Submit Request"}
           </button>
         </div>
-        <ToastContainer />
       </form>
     </div>
   );

@@ -16,6 +16,7 @@ import { auth } from "utils/auth";
 import { loadUserPermissionSet } from "~/server/auth/permission";
 import type { PermissionKey } from "~/shared/permissions";
 import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
+import { getUserRole } from "~/server/auth/role";
 
 /**
  * 1. CONTEXT
@@ -39,6 +40,10 @@ export const createTRPCContext = async (opts?: { headers?: Headers }) => {
 
   const user = session?.user ?? null;
 
+  const userRole = session?.user?.email
+    ? await getUserRole(session?.user?.email)
+    : null;
+
   const perms = user?.email
     ? await loadUserPermissionSet(user.email)
     : new Set<PermissionKey>();
@@ -47,8 +52,19 @@ export const createTRPCContext = async (opts?: { headers?: Headers }) => {
     db,
     ...opts,
     socket: getSocket(),
-    session,
-    user,
+    session: session
+      ? {
+          ...session,
+          user: {
+            ...session.user,
+            role: userRole?.role,
+            lastName: userRole?.lastName,
+          },
+        }
+      : null,
+    user: user
+      ? { ...user, role: userRole?.role, lastName: userRole?.lastName }
+      : null,
     perms,
     hasPermission: (key: PermissionKey) => perms.has(key),
   };
