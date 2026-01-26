@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { api } from "~/trpc/react";
-import { ToastContainer, toast } from "react-toastify";
-import { usePermission } from "~/hooks/usePermission";
+import { toast } from "react-toastify";
 import ReturnView from "~/app/_components/returnView";
 import { useParams } from "next/navigation";
 import {
@@ -12,14 +11,15 @@ import {
 } from "../create/createRequestForLeave";
 import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
 import ErrorHandler from "~/app/_components/errorHandler";
+import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../../utils/hasPermission";
 
 export default function EditRequestForLeave() {
   const params = useParams();
   const requestId = Number(params.id);
 
-  const { data: session, isLoading: isLoadingSession } =
-    api.userAccount.getUserSession.useQuery();
-  const { hasPermission, isLoading: loadingPerms } = usePermission();
+  const session = useSessionContext();
+  const hasPermission = HasPermission(session?.perms);
 
   const [error, setError] = useState<string | null>(null);
   const [reasonOfLeave, setReasonOfLeave] = useState<ReasonOfLeave>("leave");
@@ -52,7 +52,7 @@ export default function EditRequestForLeave() {
   const today = formatDate(new Date());
 
   useEffect(() => {
-    if (request && !loadingPerms && hasPermission("LeaveRequest.update")) {
+    if (request && hasPermission("LeaveRequest.update")) {
       setReasonOfLeave(request.reasonOfLeave);
       setDateLeaveStart(new Date(request.dateLeaveStart));
       setDateLeaveEnd(new Date(request.dateLeaveEnd));
@@ -61,7 +61,7 @@ export default function EditRequestForLeave() {
   }, [request]);
 
   useEffect(() => {
-    if (!request || loadingPerms) return;
+    if (!request) return;
     if (!hasPermission("LeaveRequest.update")) return;
 
     const isSame =
@@ -77,11 +77,10 @@ export default function EditRequestForLeave() {
     reasonOfLeave,
     reasoning,
     request,
-    loadingPerms,
     hasPermission,
   ]);
 
-  if (!isLoadingSession && !session) {
+  if (!session) {
     return (
       <ReturnView
         label={TrpcErrorlikeMessages.session.message}
@@ -90,7 +89,7 @@ export default function EditRequestForLeave() {
       />
     );
   }
-  if (hasPermission("LeaveRequest.update") && requestError?.data) {
+  if (requestError?.data) {
     return (
       <ErrorHandler
         code={requestError.data.code}
@@ -99,7 +98,7 @@ export default function EditRequestForLeave() {
     );
   }
 
-  if (!request && !isLoading && hasPermission("LeaveRequest.update")) {
+  if (!request && !isLoading) {
     return (
       <h1 className="flex min-h-screen items-center justify-center text-3xl text-red-500">
         You are unable edit this leave request
@@ -107,7 +106,7 @@ export default function EditRequestForLeave() {
     );
   }
 
-  if (!loadingPerms && !hasPermission("LeaveRequest.update")) {
+  if (!hasPermission("LeaveRequest.update")) {
     return <ReturnView />;
   }
 
@@ -149,7 +148,7 @@ export default function EditRequestForLeave() {
     }
   }
 
-  if (isLoading || loadingPerms || isLoadingSession)
+  if (isLoading)
     return (
       <p className="flex min-h-screen items-center justify-center text-3xl">
         Loading...
@@ -265,7 +264,6 @@ export default function EditRequestForLeave() {
         >
           {updateRequest.isPending ? "Updating..." : "Update Request"}
         </button>
-        <ToastContainer />
       </form>
     </div>
   );

@@ -52,6 +52,7 @@ export const user = pgTable("user", (d) => ({
   id: d
     .text("id")
     .primaryKey()
+    .notNull()
     .$defaultFn(() => crypto.randomUUID()),
   name: d.varchar({ length: 100 }).notNull(),
   lastName: d.varchar({ length: 100 }),
@@ -80,7 +81,7 @@ export const userRelations = relations(user, ({ many, one }) => ({
 
 export const roles = pgTable("roles", (d) => ({
   id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-  roleName: d.varchar({ length: 50 }).notNull(),
+  roleName: d.varchar({ length: 50 }).notNull().unique(),
   description: d.text(),
   createdAt: d
     .timestamp({ withTimezone: true })
@@ -152,9 +153,7 @@ export const rolePermissions = pgTable(
     permissionId: d
       .integer()
       .notNull()
-      .references(() => permissions.id, {
-        onDelete: "cascade",
-      }),
+      .references(() => permissions.id, { onDelete: "cascade" }),
     assignedAt: d
       .timestamp({ withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
@@ -354,6 +353,7 @@ export const logs = pgTable("logs", (d) => ({
   id: d.bigint({ mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   userId: d
     .text("userId")
+    .notNull()
     .references(() => user.id, { onDelete: "set null", onUpdate: "cascade" }),
   logEvent: LogEvents().notNull(),
   logContext: LogContext().notNull(),

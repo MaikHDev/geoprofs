@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { api } from "~/trpc/react";
-import { usePermission } from "~/hooks/usePermission";
+import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../utils/hasPermission";
 
 export default function DepartmentOccupancyOverview() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  const { hasPermission } = usePermission();
+  const session = useSessionContext();
+  const hasPermission = HasPermission(session?.perms);
 
   const isEnabled = Boolean(from && to);
 

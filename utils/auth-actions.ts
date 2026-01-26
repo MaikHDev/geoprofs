@@ -3,6 +3,9 @@
 import { auth } from "./auth";
 import { headers } from "next/headers";
 import { logAction } from "./log-handle";
+import { type api } from "~/trpc/server";
+
+export type UserSession = Awaited<ReturnType<typeof api.userAccount.getUserSession>>;
 
 export async function signIn(email: string, password: string) {
   const data = await auth.api.signInEmail({
