@@ -12,10 +12,14 @@ export default function LeaveRequestDetailsPage() {
   const hasPermission = HasPermission(session?.perms);
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
+
   const { data, isLoading } = api.leaveRequest.getById.useQuery({
     id: Number(id),
   });
+
   const utils = api.useUtils();
+
+  const canReview = hasPermission("LeaveRequestReviewUseOthers.create");
 
   const updateStatusMutation = api.leaveRequest.updateStatus.useMutation({
     onSuccess: async () => {
@@ -54,7 +58,7 @@ export default function LeaveRequestDetailsPage() {
     updateStatusMutation.mutate({ id: Number(id), status: selectedStatus });
   };
 
-  if (!session) {
+  if (!isLoading && !session) {
     return (
       <ReturnView
         returnPath="/auth"
@@ -62,13 +66,6 @@ export default function LeaveRequestDetailsPage() {
         label="You need to be logged in for this action!"
       />
     );
-  }
-
-  if (
-    !hasPermission("LeaveRequestUseOthers.read") &&
-    !hasPermission("LeaveRequestReviewUseOthers.create")
-  ) {
-    return <ReturnView />;
   }
 
   return (
@@ -79,10 +76,12 @@ export default function LeaveRequestDetailsPage() {
             <strong className="font-medium text-gray-900">Requester:</strong>{" "}
             {data.requesterName} ({data.requesterEmail})
           </p>
+
           <p>
             <strong className="font-medium text-gray-900">Reason:</strong>{" "}
             {data.reason}
           </p>
+
           <p>
             <strong className="font-medium text-gray-900">Status:</strong>{" "}
             <span
@@ -97,14 +96,17 @@ export default function LeaveRequestDetailsPage() {
               {data.status}
             </span>
           </p>
+
           <p>
             <strong className="font-medium text-gray-900">From:</strong>{" "}
             {new Date(data.start).toLocaleDateString()}
           </p>
+
           <p>
             <strong className="font-medium text-gray-900">To:</strong>{" "}
             {new Date(data.end).toLocaleDateString()}
           </p>
+
           {data.reasoning && (
             <p>
               <strong className="font-medium text-gray-900">Reasoning:</strong>{" "}
@@ -118,7 +120,7 @@ export default function LeaveRequestDetailsPage() {
             This request has already been <strong>{data.status}</strong> and can
             no longer be modified.
           </div>
-        ) : (
+        ) : canReview ? (
           <>
             <div className="mt-8 flex gap-4">
               <button
@@ -132,6 +134,7 @@ export default function LeaveRequestDetailsPage() {
               >
                 Approve
               </button>
+
               <button
                 className={`flex-1 rounded-lg px-4 py-3 font-medium text-white transition ${
                   selectedStatus === "denied"
@@ -161,7 +164,7 @@ export default function LeaveRequestDetailsPage() {
               </button>
             </div>
           </>
-        )}
+        ) : null}
       </div>
     </div>
   );

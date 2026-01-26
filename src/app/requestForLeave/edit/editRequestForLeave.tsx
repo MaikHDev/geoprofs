@@ -256,7 +256,7 @@ export default function EditRequestForLeave() {
         <button
           type="submit"
           disabled={disabledForm}
-          className={`w-full rounded-[4px] py-3 font-semibold text-white transition-colors ${
+          className={`w-full cursor-pointer rounded-[4px] py-3 font-semibold text-white transition-colors ${
             updateRequest.isPending || disabledForm
               ? "cursor-not-allowed bg-[#CCCCCC]"
               : "bg-[#00888F] hover:bg-[#00767C]"

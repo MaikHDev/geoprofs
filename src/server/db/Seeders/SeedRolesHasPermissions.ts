@@ -22,7 +22,10 @@ export async function seedRolesHasPermissions() {
     "LogDepartments",
   ];
 
-  const excludePermissionsAdmin = ["LeaveRequest"];
+  const excludePermissionsAdmin = [
+    "LeaveRequest",
+    "LeaveRequestReviewUseOthers",
+  ];
 
   const rolePermissionConfig: Record<string, string[]> = {
     Admin: ["*-LeaveRequest"],
@@ -46,6 +49,7 @@ export async function seedRolesHasPermissions() {
       "LeaveRequestUseOthers.update",
       "LeaveRequestUseOthers.delete",
       "LeaveRequestReviewUseOthers.create",
+      "LeaveRequestReviewUseOthers.read",
       "Department.read",
       "Role.read",
       "RolePermission.read",

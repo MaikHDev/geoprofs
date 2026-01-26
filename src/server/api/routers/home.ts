@@ -5,7 +5,7 @@ import { requestForLeave } from "~/server/db/schema";
 
 export const homeRouter = createTRPCRouter({
     reminderView: protectedProcedure
-    .use(requirePermission("LeaveRequest.read"))
+    .use(requirePermission("LeaveRequestUseOthers.read"))
     .query(({ ctx }) => {
       return ctx.db.query.requestForLeave.findMany({
         where: (r) => 

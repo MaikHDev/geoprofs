@@ -3,7 +3,7 @@ import {
   protectedProcedure,
   requirePermission,
 } from "../trpc";
-import { requestForLeave, user } from "~/server/db/schema";
+import { requestForLeave, user, userDepartments } from "~/server/db/schema";
 import { and, asc, eq, gte, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
 import { logAction } from "../../../../utils/log-handle";
@@ -15,6 +15,13 @@ export const leaveRequestsRouter = createTRPCRouter({
     .query(async ({ ctx }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+
+      const viewerDepartments = ctx.db
+        .select({
+          departmentName: userDepartments.departmentName,
+        })
+        .from(userDepartments)
+        .where(eq(userDepartments.userId, ctx.user!.id));
 
       return ctx.db
         .select({
@@ -30,11 +37,16 @@ export const leaveRequestsRouter = createTRPCRouter({
         })
         .from(requestForLeave)
         .leftJoin(user, eq(user.id, requestForLeave.userId))
+        .leftJoin(
+          userDepartments,
+          eq(userDepartments.userId, requestForLeave.userId),
+        )
         .where(
           and(
             eq(requestForLeave.status, "pending"),
             ne(requestForLeave.userId, ctx.user!.id),
             gte(requestForLeave.dateLeaveEnd, today),
+            inArray(userDepartments.departmentName, viewerDepartments),
           ),
         )
         .orderBy(requestForLeave.createdAt);
@@ -46,6 +58,13 @@ export const leaveRequestsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+
+      const viewerDepartments = ctx.db
+        .select({
+          departmentName: userDepartments.departmentName,
+        })
+        .from(userDepartments)
+        .where(eq(userDepartments.userId, ctx.user!.id));
 
       const [req] = await ctx.db
         .select({
@@ -62,11 +81,16 @@ export const leaveRequestsRouter = createTRPCRouter({
         })
         .from(requestForLeave)
         .leftJoin(user, eq(user.id, requestForLeave.userId))
+        .leftJoin(
+          userDepartments,
+          eq(userDepartments.userId, requestForLeave.userId),
+        )
         .where(
           and(
             eq(requestForLeave.id, input.id),
             ne(requestForLeave.userId, ctx.user!.id),
             gte(requestForLeave.dateLeaveEnd, today),
+            inArray(userDepartments.departmentName, viewerDepartments),
           ),
         )
         .limit(1);
