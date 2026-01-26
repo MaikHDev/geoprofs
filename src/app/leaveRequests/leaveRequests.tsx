@@ -12,6 +12,8 @@ export default function PendingLeaveRequestsPage() {
   const { data, isLoading } = api.leaveRequest.listPendingRequests.useQuery();
   const router = useRouter();
 
+  const canReview = hasPermission("LeaveRequestReviewUseOthers.create");
+
   const approveMutation = api.leaveRequest.updateMultipleStatus.useMutation({
     onSuccess: async () => {
       await utils.leaveRequest.listPendingRequests.invalidate();
@@ -30,6 +32,8 @@ export default function PendingLeaveRequestsPage() {
     [],
   );
   const [isAllChecked, setIsAllChecked] = useState(false);
+
+  const hasSelection = checkedLeaveRequests.length > 0;
 
   const handleOnChange = (id: number) => {
     setCheckedLeaveRequests((prev) => {
@@ -155,28 +159,43 @@ export default function PendingLeaveRequestsPage() {
         </table>
       </div>
 
-      <div className="mt-6 flex gap-4">
-        <button
-          onClick={() =>
-            approveMutation.mutate({
-              ids: checkedLeaveRequests,
-              status: "approved",
-            })
-          }
-          className="cursor-pointer rounded-md bg-[#00888F] px-6 py-2 text-white transition hover:bg-[#007379]"
-        >
-          {approveMutation.isPending ? "Saving..." : "Approve selected"}
-        </button>
+      {canReview && (
+        <div className="mt-6 flex gap-4">
+          <button
+            disabled={!hasSelection || approveMutation.isPending}
+            onClick={() =>
+              approveMutation.mutate({
+                ids: checkedLeaveRequests,
+                status: "approved",
+              })
+            }
+            className={`rounded-md px-6 py-2 text-white transition ${
+              !hasSelection
+                ? "cursor-not-allowed bg-[#CCCCCC]"
+                : "cursor-pointer bg-[#00888F] hover:bg-[#007379]"
+            } ${approveMutation.isPending ? "opacity-70" : ""}`}
+          >
+            {approveMutation.isPending ? "Saving..." : "Approve selected"}
+          </button>
 
-        <button
-          onClick={() =>
-            denyMutation.mutate({ ids: checkedLeaveRequests, status: "denied" })
-          }
-          className="cursor-pointer rounded-md border border-gray-300 px-6 py-2 text-gray-700 transition hover:bg-gray-50"
-        >
-          {denyMutation.isPending ? "Saving..." : "Deny selected"}
-        </button>
-      </div>
+          <button
+            disabled={!hasSelection || denyMutation.isPending}
+            onClick={() =>
+              denyMutation.mutate({
+                ids: checkedLeaveRequests,
+                status: "denied",
+              })
+            }
+            className={`rounded-md border px-6 py-2 transition ${
+              !hasSelection
+                ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                : "cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-50"
+            } ${denyMutation.isPending ? "opacity-70" : ""}`}
+          >
+            {denyMutation.isPending ? "Saving..." : "Deny selected"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

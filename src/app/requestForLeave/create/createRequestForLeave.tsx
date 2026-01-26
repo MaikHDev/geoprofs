@@ -185,7 +185,7 @@ export default function CreateRequestForLeave() {
           <button
             type="submit"
             disabled={createRequest.isPending}
-            className={`w-full rounded-[4px] py-3 font-semibold text-white transition-colors ${
+            className={`w-full cursor-pointer rounded-[4px] py-3 font-semibold text-white transition-colors ${
               createRequest.isPending
                 ? "cursor-not-allowed bg-[#CCCCCC]"
                 : "bg-[#00888F] hover:bg-[#00767C]"
