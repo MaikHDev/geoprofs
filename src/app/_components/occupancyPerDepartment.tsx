@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { api } from "~/trpc/react";
+import { usePermission } from "~/hooks/usePermission";
 
 export default function DepartmentOccupancyOverview() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+
+  const { hasPermission } = usePermission();
 
   const isEnabled = Boolean(from && to);
 
@@ -19,6 +22,10 @@ export default function DepartmentOccupancyOverview() {
         enabled: isEnabled,
       },
     );
+
+  if (!isLoading && !hasPermission("LeaveRequestUseOthers.read")) {
+    return null;
+  }
 
   return (
     <div className="flex flex-col p-8">
