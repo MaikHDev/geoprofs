@@ -46,4 +46,73 @@ export const leavePlanningRouter = createTRPCRouter({
           ),
         );
     }),
+
+  getDepartmentStaffingOverview: protectedProcedure
+    .use(requirePermission("LeaveRequestUseOthers.read"))
+    .input(
+      z.object({
+        from: z.date(),
+        to: z.date(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const departmentsUserBelongsTo = await ctx.db
+        .select({
+          departmentName: userDepartments.departmentName,
+        })
+        .from(userDepartments)
+        .where(eq(userDepartments.userId, ctx.user!.id));
+
+      if (departmentsUserBelongsTo.length === 0) return [];
+
+      const departmentNames = departmentsUserBelongsTo
+        .map((d) => d.departmentName)
+        .filter((name): name is string => name !== null);
+
+      const usersPerDepartment = await ctx.db
+        .select({
+          userId: userDepartments.userId,
+          departmentName: userDepartments.departmentName,
+        })
+        .from(userDepartments)
+        .where(inArray(userDepartments.departmentName, departmentNames));
+
+      const approvedLeaves = await ctx.db
+        .select({
+          userId: requestForLeave.userId,
+          departmentName: userDepartments.departmentName,
+        })
+        .from(requestForLeave)
+        .innerJoin(
+          userDepartments,
+          eq(userDepartments.userId, requestForLeave.userId),
+        )
+        .where(
+          and(
+            eq(requestForLeave.status, "approved"),
+            inArray(userDepartments.departmentName, departmentNames),
+            gte(requestForLeave.dateLeaveEnd, input.from),
+            lte(requestForLeave.dateLeaveStart, input.to),
+          ),
+        );
+
+      return departmentNames.map((departmentName) => {
+        const usersInDepartment = usersPerDepartment.filter(
+          (departmentUser) => departmentUser.departmentName === departmentName,
+        );
+
+        const totalEmployees = usersInDepartment.length;
+
+        const onLeave = approvedLeaves.filter(
+          (approvedLeave) => approvedLeave.departmentName === departmentName,
+        ).length;
+
+        return {
+          departmentName,
+          totalEmployees,
+          onLeave,
+          available: totalEmployees - onLeave,
+        };
+      });
+    }),
 });
