@@ -2,9 +2,11 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { leaveRequestsRouter } from "~/server/api/routers/leaveRequest";
 import { auditTrailRouter } from "~/server/api/routers/audit-trail";
 import { requestForLeaveRouter } from "./routers/requestForLeave";
+import { leavePlanningRouter } from "./routers/leavePlanning";
 import { authRouter } from "~/server/api/routers/auth";
 import { userAccountRouter } from "~/server/api/routers/userAccount";
 import { profileRouter } from "~/server/api/routers/profile";
+import { homeRouter } from "~/server/api/routers/home";
 
 /**
  * This is the primary router for your server.
@@ -17,6 +19,8 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   leaveRequest: leaveRequestsRouter,
   userAccount: userAccountRouter,
+  leavePlanning: leavePlanningRouter,
+  home: homeRouter,
   profile: profileRouter,
 });
 

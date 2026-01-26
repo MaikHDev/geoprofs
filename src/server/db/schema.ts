@@ -27,9 +27,9 @@ export const ReasonsForLeave = pgEnum("ReasonsForLeave", [
 export const Statuses = pgEnum("Statuses", [
   "pending",
   "opened",
-  "approved",
   "renewal",
   "denied",
+  "approved",
 ]);
 
 export const LogEvents = pgEnum("LogEvents", [
