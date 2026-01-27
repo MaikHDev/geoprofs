@@ -6,11 +6,17 @@
  * TL;DR - This is where all the tRPC server stuff is created and plugged in. The pieces you will
  * need to use are documented accordingly near the end.
  */
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import { ZodError } from "zod";
 
 import { db } from "~/server/db";
+import { getSocket } from "../../../utils/socket-client";
+import { auth } from "utils/auth";
+import { loadUserPermissionSet } from "~/server/auth/permission";
+import type { PermissionKey } from "~/shared/permissions";
+import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
+import { getUserRole } from "~/server/auth/role";
 
 /**
  * 1. CONTEXT
@@ -24,10 +30,43 @@ import { db } from "~/server/db";
  *
  * @see https://trpc.io/docs/server/context
  */
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts?: { headers?: Headers }) => {
+  let session = null;
+  if (opts?.headers) {
+    session = await auth.api.getSession({
+      headers: opts.headers,
+    });
+  }
+
+  const user = session?.user ?? null;
+
+  const userRole = session?.user?.email
+    ? await getUserRole(session?.user?.email)
+    : null;
+
+  const perms = user?.email
+    ? await loadUserPermissionSet(user.email)
+    : new Set<PermissionKey>();
+
   return {
     db,
     ...opts,
+    socket: getSocket(),
+    session: session
+      ? {
+          ...session,
+          user: {
+            ...session.user,
+            role: userRole?.role,
+            lastName: userRole?.lastName,
+          },
+        }
+      : null,
+    user: user
+      ? { ...user, role: userRole?.role, lastName: userRole?.lastName }
+      : null,
+    perms,
+    hasPermission: (key: PermissionKey) => perms.has(key),
   };
 };
 
@@ -104,3 +143,38 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * are logged in.
  */
 export const publicProcedure = t.procedure.use(timingMiddleware);
+
+/**
+ * Protected (authenticated) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
+ * the session is valid and guarantees `ctx.session.user` is not null.
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+export const protectedProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session?.user) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: TrpcErrorlikeMessages.session.message,
+      });
+    }
+    return next({
+      ctx: {
+        // infers the `session` as non-nullable
+        session: { ...ctx.session, user: ctx.session.user },
+      },
+    });
+  });
+
+export const requirePermission = (key: PermissionKey) =>
+  t.middleware(({ ctx, next }) => {
+    if (!ctx.perms.has(key))
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: TrpcErrorlikeMessages.permission.message,
+      });
+    return next();
+  });

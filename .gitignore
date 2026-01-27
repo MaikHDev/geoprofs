@@ -5,6 +5,10 @@
 /.pnp
 .pnp.js
 
+public/avatar
+
+drizzle
+
 # testing
 /coverage
 
@@ -44,3 +48,5 @@ yarn-error.log*
 
 # idea files
 .idea
+
+drizzle

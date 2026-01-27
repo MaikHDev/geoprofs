@@ -1,0 +1,213 @@
+"use client";
+
+import { api } from "~/trpc/react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import ReturnView from "~/app/_components/returnView";
+import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../utils/hasPermission";
+
+export default function PendingLeaveRequestsPage() {
+  const session = useSessionContext();
+  const hasPermission = HasPermission(session?.perms);
+  const utils = api.useUtils();
+  const { data, isLoading } = api.leaveRequest.listPendingRequests.useQuery();
+  const router = useRouter();
+
+  const canReview = hasPermission("LeaveRequestReviewUseOthers.create");
+
+  const approveMutation = api.leaveRequest.updateMultipleStatus.useMutation({
+    onSuccess: async () => {
+      await utils.leaveRequest.listPendingRequests.invalidate();
+      setCheckedLeaveRequests([]);
+    },
+  });
+
+  const denyMutation = api.leaveRequest.updateMultipleStatus.useMutation({
+    onSuccess: async () => {
+      await utils.leaveRequest.listPendingRequests.invalidate();
+      setCheckedLeaveRequests([]);
+    },
+  });
+
+  const [checkedLeaveRequests, setCheckedLeaveRequests] = useState<number[]>(
+    [],
+  );
+  const [isAllChecked, setIsAllChecked] = useState(false);
+
+  const hasSelection = checkedLeaveRequests.length > 0;
+
+  const handleOnChange = (id: number) => {
+    setCheckedLeaveRequests((prev) => {
+      if (prev.includes(id)) {
+        return prev.filter((checkedLeaveRequest) => checkedLeaveRequest !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
+  useEffect(() => {
+    if (!data) return;
+    if (checkedLeaveRequests.length === data.length && data.length > 0) {
+      setIsAllChecked(true);
+    } else {
+      setIsAllChecked(false);
+    }
+  }, [checkedLeaveRequests, data]);
+
+  const handleSelectAll = () => {
+    if (!data) return;
+    if (isAllChecked) {
+      setCheckedLeaveRequests([]);
+    } else {
+      setCheckedLeaveRequests(data.map((req) => req.id));
+    }
+    setIsAllChecked(!isAllChecked);
+  };
+
+  if (!session) {
+    return (
+      <ReturnView
+        returnPath="/auth"
+        returnName="Login"
+        label="You need to be logged in for this action!"
+      />
+    );
+  }
+
+  if (!hasPermission("LeaveRequestUseOthers.read")) {
+    return <ReturnView />;
+  }
+
+  if (isLoading)
+    return (
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        Loading...
+      </div>
+    );
+  if (!data)
+    return (
+      <div className="flex h-64 items-center justify-center text-gray-500">
+        Request not found.
+      </div>
+    );
+
+  return (
+    <div className="p-8">
+      <h2 className="mb-6 text-3xl font-semibold">Leave requests</h2>
+
+      <div className="rounded-lg border border-gray-200 shadow-sm">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="w-12 px-4 py-3">
+                <input
+                  type="checkbox"
+                  checked={isAllChecked}
+                  onChange={handleSelectAll}
+                  className="text-bg-[#00888F] h-4 w-4 cursor-pointer rounded border-gray-300"
+                  ref={(el) => {
+                    if (el) {
+                      el.indeterminate =
+                        checkedLeaveRequests.length > 0 &&
+                        checkedLeaveRequests.length < (data?.length ?? 0);
+                    }
+                  }}
+                />
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                Name
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                Reason
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                Start date
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                End date
+              </th>
+              <th className="border-r border-dotted border-gray-300 px-6 py-3 text-left text-sm font-semibold text-gray-600">
+                Reasoning
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 bg-white">
+            {data?.map((request) => (
+              <tr
+                key={request.id}
+                className="cursor-pointer hover:bg-gray-50"
+                onClick={() => router.push(`/leaveRequest/${request.id}`)}
+              >
+                <td className="px-4 py-4">
+                  <input
+                    onClick={(e) => e.stopPropagation()}
+                    type="checkbox"
+                    value={request.id}
+                    checked={checkedLeaveRequests.includes(request.id)}
+                    onChange={() => handleOnChange(request.id)}
+                    className="text-bg-[#00888F] h-4 w-4 cursor-pointer rounded border-gray-300"
+                  />
+                </td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {request.requesterName}
+                </td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {request.reason}
+                </td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {new Date(request.start).toLocaleDateString()}
+                </td>
+                <td className="border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {new Date(request.end).toLocaleDateString()}
+                </td>
+                <td className="max-w-xs truncate border-r border-dotted border-gray-300 px-6 py-4 text-sm text-gray-700">
+                  {request.reasoning}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {canReview && (
+        <div className="mt-6 flex gap-4">
+          <button
+            disabled={!hasSelection || approveMutation.isPending}
+            onClick={() =>
+              approveMutation.mutate({
+                ids: checkedLeaveRequests,
+                status: "approved",
+              })
+            }
+            className={`rounded-md px-6 py-2 text-white transition ${
+              !hasSelection
+                ? "cursor-not-allowed bg-[#CCCCCC]"
+                : "cursor-pointer bg-[#00888F] hover:bg-[#007379]"
+            } ${approveMutation.isPending ? "opacity-70" : ""}`}
+          >
+            {approveMutation.isPending ? "Saving..." : "Approve selected"}
+          </button>
+
+          <button
+            disabled={!hasSelection || denyMutation.isPending}
+            onClick={() =>
+              denyMutation.mutate({
+                ids: checkedLeaveRequests,
+                status: "denied",
+              })
+            }
+            className={`rounded-md border px-6 py-2 transition ${
+              !hasSelection
+                ? "cursor-not-allowed bg-gray-100 text-gray-400"
+                : "cursor-pointer border-gray-300 text-gray-700 hover:bg-gray-50"
+            } ${denyMutation.isPending ? "opacity-70" : ""}`}
+          >
+            {denyMutation.isPending ? "Saving..." : "Deny selected"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
