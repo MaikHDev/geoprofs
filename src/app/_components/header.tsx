@@ -34,8 +34,9 @@ export default function Header() {
 
   const urls = {
     home: "/",
+    leaveRequests: "/requestForLeave/view",
     requestForLeave: "/requestForLeave/create",
-    leaveRequests: "/leaveRequests",
+    reviewLeaveRequests: "/leaveRequests",
     auth: "/auth",
     dashboard: "/dashboard",
     leavePlanning: "/leavePlanning",
@@ -63,6 +64,11 @@ export default function Header() {
   const navItems: NavItem[] = [
     { label: "Home", href: urls.home },
     {
+      label: "Leave requests",
+      href: urls.leaveRequests,
+      show: isAuthenticated && hasPermission("LeaveRequest.read"),
+    },
+    {
       label: "Make leave request",
       href: urls.requestForLeave,
       show: isAuthenticated && hasPermission("LeaveRequest.create"),
@@ -78,8 +84,8 @@ export default function Header() {
       show: isAuthenticated && hasPermission("LeaveRequestUseOthers.read"),
     },
     {
-      label: "Leave requests",
-      href: urls.leaveRequests,
+      label: "Review Leave requests",
+      href: urls.reviewLeaveRequests,
       show:
         isAuthenticated && hasPermission("LeaveRequestReviewUseOthers.create"),
     },

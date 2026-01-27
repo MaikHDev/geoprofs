@@ -2,29 +2,41 @@
 
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import React, { useState } from "react";
 import ReturnView from "~/app/_components/returnView";
-import { usePermission } from "~/hooks/usePermission";
+import { useSessionContext } from "~/app/_components/session-provider";
+import { HasPermission } from "../../../../utils/hasPermission";
+import { TrpcErrorlikeMessages } from "~/trpc/trpc-errorlike-messages";
 
 export default function LeaveRequestView() {
   const router = useRouter();
   const { data, isLoading: isDataLoading } =
     api.leaveRequest.viewStatus.useQuery();
 
-  const { hasPermission, isLoading } = usePermission();
+  const session = useSessionContext();
+  const hasPermission = HasPermission(session?.perms);
   const [statusFilter, setStatusFilter] = useState("all");
   const [reasonFilter, setReasonFilter] = useState("all");
 
-  if (isLoading || isDataLoading) {
+  if (!session) {
+    return (
+      <ReturnView
+        label={TrpcErrorlikeMessages.session.message}
+        returnName="Login"
+        returnPath="/auth"
+      />
+    );
+  }
+  if (!hasPermission("LeaveRequest.read")) {
+    return <ReturnView />;
+  }
+
+  if (isDataLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-lg font-medium text-gray-600">Loading...</p>
       </div>
     );
-  }
-
-  if (!isLoading && !hasPermission("LeaveRequest.read")) {
-    return <ReturnView />;
   }
 
   if (!data) return null;
