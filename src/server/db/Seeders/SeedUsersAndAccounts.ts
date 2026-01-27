@@ -39,6 +39,40 @@ export const users: AccountType[] = [
     csn: "1236547582341",
     emailVerified: true,
   },
+  {
+    email: "admin2@email.com",
+    name: "Admin 2",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+    emailVerified: true,
+  },
+  {
+    email: "officemanager2@email.com",
+    name: "Office Manager 2",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+    emailVerified: true,
+  },
+  {
+    vacationDays: 30,
+    email: "manager2@email.com",
+    name: "Manager 2",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+    emailVerified: true,
+  },
+  {
+    vacationDays: 30,
+    email: "employee2@email.com",
+    name: "Employee 2",
+    lastName: "Account",
+    password: "12345678",
+    csn: "1236547582341",
+    emailVerified: true,
+  },
 ];
 
 async function createUser(u: AccountType) {

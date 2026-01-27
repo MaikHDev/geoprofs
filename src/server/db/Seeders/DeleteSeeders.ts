@@ -6,6 +6,7 @@ export async function seedDelete() {
     TRUNCATE TABLE
       "rolePermissions",
       "userRoles",
+      "departments",
       "userDepartments",
       "requestForLeave",
       "session",
@@ -13,7 +14,6 @@ export async function seedDelete() {
       "user",
       "permissions",
       "roles",
-      "departments",
       "verification",
       "logs"
     RESTART IDENTITY CASCADE;

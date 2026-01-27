@@ -20,6 +20,7 @@ export async function seedRolesHasPermissions() {
     "LogRoles",
     "LogLeaveRequests",
     "LogDepartments",
+    "LeaveRequest",
   ];
 
   const excludePermissionsAdmin = [

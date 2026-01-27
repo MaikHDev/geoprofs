@@ -5,6 +5,8 @@ import { seedUserHasRoles } from "~/server/db/Seeders/SeedUserHasRoles";
 import { seedRolesHasPermissions } from "~/server/db/Seeders/SeedRolesHasPermissions";
 import { seedDelete } from "~/server/db/Seeders/DeleteSeeders";
 import { seedRoles } from "~/server/db/Seeders/seedRoles";
+import { seedDepartments } from "~/server/db/Seeders/SeedDepartments";
+import { seedUserDepartments } from "~/server/db/Seeders/SeedUserDepartments";
 
 async function main() {
   const args = Bun.argv.slice(2);
@@ -42,6 +44,8 @@ async function main() {
         await seedPermissions();
         await seedRolesHasPermissions();
         await seedUserHasRoles();
+        await seedDepartments();
+        await seedUserDepartments();
         break;
 
       default:

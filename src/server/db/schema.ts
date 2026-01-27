@@ -271,8 +271,7 @@ export const departments = pgTable("departments", (d) => ({
   startupDate: d.timestamp().defaultNow().notNull(),
   superVisor: d
     .text()
-    .notNull()
-    .references(() => user.id),
+    .references(() => user.id, { onDelete: "cascade", onUpdate: "cascade" }),
 }));
 
 export const departmentsRelations = relations(departments, ({ many, one }) => ({

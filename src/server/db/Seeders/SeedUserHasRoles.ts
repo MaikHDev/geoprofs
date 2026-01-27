@@ -10,6 +10,10 @@ export async function seedUserHasRoles() {
     { roleId: 2, userEmail: "officemanager@email.com", assignedAt: new Date() },
     { roleId: 3, userEmail: "manager@email.com", assignedAt: new Date() },
     { roleId: 4, userEmail: "employee@email.com", assignedAt: new Date() },
+    { roleId: 1, userEmail: "admin2@email.com", assignedAt: new Date() },
+    { roleId: 2, userEmail: "officemanager2@email.com", assignedAt: new Date() },
+    { roleId: 3, userEmail: "manager2@email.com", assignedAt: new Date() },
+    { roleId: 4, userEmail: "employee2@email.com", assignedAt: new Date() },
   ];
 
   // eslint-disable-next-line drizzle/enforce-delete-with-where
