@@ -3,7 +3,13 @@ import {
   protectedProcedure,
   requirePermission,
 } from "~/server/api/trpc";
-import { account, logs, requestForLeave, user } from "~/server/db/schema";
+import {
+  account,
+  logs,
+  requestForLeave,
+  user,
+  userDepartments,
+} from "~/server/db/schema";
 import { and, desc, eq } from "drizzle-orm";
 
 export const profileRouter = createTRPCRouter({
@@ -58,10 +64,12 @@ export const profileRouter = createTRPCRouter({
           userCreatedAt: user.createdAt,
           image: user.image,
           csn: account.csn,
+          department: userDepartments.departmentName,
         })
         .from(user)
         .where(eq(user.id, ctx.user.id))
-        .innerJoin(account, eq(account.userId, user.id));
+        .innerJoin(account, eq(account.userId, user.id))
+        .leftJoin(userDepartments, eq(account.userId, userDepartments.userId));
 
       return {
         ...profileResult,
