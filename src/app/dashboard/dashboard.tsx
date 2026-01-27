@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import { useSessionContext } from "~/app/_components/session-provider";
@@ -77,6 +77,35 @@ export default function Dashboard() {
                       <p className="text-sm text-gray-600">
                         Add a new user account
                       </p>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {hasPermission("Log.read") && (
+              <Link href="/logs">
+                <div className="group cursor-pointer rounded-[4px] border border-[#CCCCCC] bg-white p-6 shadow-sm transition-all hover:border-[#00888F] hover:shadow-md">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-[4px] bg-[#00888F] text-white transition-colors group-hover:bg-[#00767C]">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="h-6 w-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M9 3h6m-7 4h8M7 11h10M7 15h10M7 19h10"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[#000000]">Logs</h3>
+                      <p className="text-sm text-gray-600">View audit trail</p>
                     </div>
                   </div>
                 </div>
