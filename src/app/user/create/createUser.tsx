@@ -22,6 +22,7 @@ export default function CreateUser() {
       setVacationDays(null);
       setCsn("");
       setError("");
+      setDepartment("");
     },
     onError: (error) => {
       toast.error(error.message);
@@ -38,6 +39,16 @@ export default function CreateUser() {
       refetchOnWindowFocus: false,
     });
 
+  const { data: useableDepartments, isLoading: loadingDepartments } =
+    api.auth.getDepartments.useQuery(undefined, {
+      retry: (failureCount, error) => {
+        if (error?.data?.code === "UNAUTHORIZED") return false;
+
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: false,
+    });
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState<string | null>("");
   const [email, setEmail] = useState("");
@@ -45,6 +56,7 @@ export default function CreateUser() {
   const [vacationDays, setVacationDays] = useState<number | null>(null);
   const [csn, setCsn] = useState<string | null>("");
   const [role, setRole] = useState("");
+  const [department, setDepartment] = useState("");
 
   const [error, setError] = useState<string>("");
 
@@ -53,6 +65,16 @@ export default function CreateUser() {
       setRole(useableRoles[0]);
     }
   }, [useableRoles, role]);
+
+  useEffect(() => {
+    if (
+      useableDepartments?.[0] &&
+      useableDepartments.length > 0 &&
+      !department
+    ) {
+      setDepartment(useableDepartments[0]);
+    }
+  }, [department, useableDepartments]);
 
   if (!session) {
     return (
@@ -99,6 +121,7 @@ export default function CreateUser() {
       email,
       password: pass,
       role,
+      department,
       ...(vacationDays && { vacationDays }),
       ...(lastName && { lastName }),
       ...(csn && { csn }),
@@ -115,7 +138,7 @@ export default function CreateUser() {
         </h1>
 
         {loadingRoles && (
-          <div className="font-semibold text-blue-500">Loading roles...</div>
+          <div className="font-semibold text-blue-500">Loading data...</div>
         )}
 
         {error && (
@@ -135,7 +158,7 @@ export default function CreateUser() {
               onChange={(e) => setFirstName(e.target.value)}
               required
               placeholder="Enter first name"
-              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:outline-none focus:ring-1 focus:ring-[#00888F]"
+              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:ring-1 focus:ring-[#00888F] focus:outline-none"
             />
           </div>
 
@@ -148,7 +171,7 @@ export default function CreateUser() {
               value={lastName ?? ""}
               onChange={(e) => setLastName(e.target.value)}
               placeholder="Enter last name"
-              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:outline-none focus:ring-1 focus:ring-[#00888F]"
+              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:ring-1 focus:ring-[#00888F] focus:outline-none"
             />
           </div>
 
@@ -162,7 +185,7 @@ export default function CreateUser() {
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Enter email address"
-              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:outline-none focus:ring-1 focus:ring-[#00888F]"
+              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:ring-1 focus:ring-[#00888F] focus:outline-none"
             />
           </div>
 
@@ -176,7 +199,7 @@ export default function CreateUser() {
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="Enter password (min 8 characters)"
-              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:outline-none focus:ring-1 focus:ring-[#00888F]"
+              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:ring-1 focus:ring-[#00888F] focus:outline-none"
             />
           </div>
 
@@ -189,7 +212,7 @@ export default function CreateUser() {
               value={vacationDays ?? ""}
               onChange={(e) => setVacationDays(e.target.valueAsNumber || null)}
               placeholder="Enter vacation days"
-              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:outline-none focus:ring-1 focus:ring-[#00888F]"
+              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:ring-1 focus:ring-[#00888F] focus:outline-none"
             />
           </div>
 
@@ -200,7 +223,7 @@ export default function CreateUser() {
               value={csn ?? ""}
               onChange={(e) => setCsn(e.target.value)}
               placeholder="Enter CSN"
-              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:outline-none focus:ring-1 focus:ring-[#00888F]"
+              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:ring-1 focus:ring-[#00888F] focus:outline-none"
             />
           </div>
 
@@ -211,13 +234,38 @@ export default function CreateUser() {
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              disabled={loadingRoles || !useableRoles || useableRoles.length === 0}
-              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:outline-none focus:ring-1 focus:ring-[#00888F] disabled:cursor-not-allowed disabled:bg-gray-50"
+              disabled={
+                loadingRoles || !useableRoles || useableRoles.length === 0
+              }
+              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:ring-1 focus:ring-[#00888F] focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50"
             >
               {!role && <option value="">Select a role...</option>}
               {useableRoles?.map((rl) => (
                 <option key={rl} value={rl}>
                   {rl}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="mb-1 font-medium text-[#000000]">
+              Department: <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              disabled={
+                loadingDepartments ||
+                !useableDepartments ||
+                useableDepartments.length === 0
+              }
+              className="rounded-[4px] border border-[#CCCCCC] px-3 py-2 text-[#000000] transition-colors focus:border-[#00888F] focus:ring-1 focus:ring-[#00888F] focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-50"
+            >
+              {!department && <option value="">Select a department...</option>}
+              {useableDepartments?.map((ud) => (
+                <option key={ud} value={ud}>
+                  {ud}
                 </option>
               ))}
             </select>
